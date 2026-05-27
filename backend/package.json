@@ -4,7 +4,7 @@
   "description": "Backend for the Home Organization App using Express and MongoDB.",
   "main": "src/app.ts",
   "scripts": {
-    "start": "ts-node src/app.ts",
+    "start": "node dist/app.js",
     "dev": "ts-node-dev --respawn src/app.ts",
     "build": "tsc",
     "lint": "eslint .",

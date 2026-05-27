@@ -38,6 +38,9 @@ mongoose
 // Static uploads
 app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')))
 
+// Serve built frontend
+app.use(express.static(path.resolve(__dirname, '../public')))
+
 // Routes
 app.use('/api/upload', uploadRouter)
 app.use('/api/rooms', roomRouter)
@@ -45,6 +48,11 @@ app.use('/api/categories', categoryRouter)
 app.use('/api/tags', tagRouter)
 app.use('/api/items', itemRouter)
 app.use('/api/dumpster', dumpsterRouter)
+
+// SPA fallback — must be after API routes
+app.get(/^(?!\/api|\/uploads).*/, (_req, res) => {
+  res.sendFile(path.resolve(__dirname, '../public/index.html'))
+})
 
 // Start the server
 const server = http.createServer(app)
