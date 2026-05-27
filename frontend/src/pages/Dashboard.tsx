@@ -14,7 +14,7 @@ import {
   Anchor,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconPlus, IconDoor, IconTrash } from '@tabler/icons-react';
+import { IconPlus, IconDoor, IconTrash, IconEdit } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
 import { useRooms } from '../contexts/RoomsContext';
 import { deleteRoom } from '../services/api';
@@ -24,6 +24,7 @@ import CreateRoomModal from '../components/CreateRoomModal';
 const Dashboard: React.FC = () => {
   const { rooms, loading, refresh, removeRoom, refreshCounts } = useRooms();
   const [modalOpen, setModalOpen] = useState(false);
+  const [editRoom, setEditRoom] = useState<Room | null>(null);
   const navigate = useNavigate();
 
   const handleDelete = async (e: React.MouseEvent, room: Room) => {
@@ -97,14 +98,24 @@ const Dashboard: React.FC = () => {
                       {room.name}
                     </Text>
                   </Group>
-                  <ActionIcon
-                    color="red"
-                    variant="subtle"
-                    size="sm"
-                    onClick={(e) => handleDelete(e, room)}
-                  >
-                    <IconTrash size={14} />
-                  </ActionIcon>
+                  <Group gap={4} wrap="nowrap">
+                    <ActionIcon
+                      color="blue"
+                      variant="subtle"
+                      size="sm"
+                      onClick={(e) => { e.stopPropagation(); setEditRoom(room); }}
+                    >
+                      <IconEdit size={14} />
+                    </ActionIcon>
+                    <ActionIcon
+                      color="red"
+                      variant="subtle"
+                      size="sm"
+                      onClick={(e) => handleDelete(e, room)}
+                    >
+                      <IconTrash size={14} />
+                    </ActionIcon>
+                  </Group>
                 </Group>
                 {room.description ? (
                   <Text size="sm" c="dimmed" lineClamp={2}>
@@ -122,12 +133,14 @@ const Dashboard: React.FC = () => {
       )}
 
       <CreateRoomModal
-        opened={modalOpen}
-        onClose={() => setModalOpen(false)}
+        opened={modalOpen || editRoom !== null}
+        onClose={() => { setModalOpen(false); setEditRoom(null); }}
         onCreated={() => {
           refresh();
           setModalOpen(false);
+          setEditRoom(null);
         }}
+        editRoom={editRoom ?? undefined}
       />
     </>
   );

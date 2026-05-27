@@ -26,6 +26,26 @@ class RoomController {
     }
   }
 
+  async update(req: Request, res: Response): Promise<void> {
+    try {
+      const { name, description } = req.body
+      const updated = await Room.findByIdAndUpdate(
+        req.params.id,
+        { name, description },
+        { new: true, runValidators: true },
+      )
+      if (!updated) {
+        res.status(404).json({ message: 'Room not found' })
+        return
+      }
+      getIO().emit('room:updated', { id: updated._id })
+      res.json(updated)
+    } catch (error) {
+      logger.error('Error updating room', { id: req.params.id, error })
+      res.status(400).json({ message: 'Error updating room', error })
+    }
+  }
+
   async remove(req: Request, res: Response): Promise<void> {
     try {
       await Room.findByIdAndUpdate(req.params.id, { deletedAt: new Date() })

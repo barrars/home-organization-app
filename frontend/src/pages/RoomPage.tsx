@@ -290,91 +290,93 @@ const RoomPage: React.FC = () => {
       </Group>
 
       {!loading && items.length > 0 && (
-        <Card withBorder radius="md" padding="sm" mb="md">
-          <Group justify="space-between" align="center" mb="xs">
-            <Text fw={600} size="sm">
+        <Box
+          mb="md"
+          px="sm"
+          py={6}
+          style={{
+            background: 'var(--mantine-color-gray-2)',
+            borderRadius: 'var(--mantine-radius-xs)',
+            borderLeft: '3px solid var(--mantine-color-blue-6)',
+          }}
+        >
+          {/* Toolbar row: label + sort + reset */}
+          <Group gap="sm" align="flex-end" wrap="wrap" mb={6}>
+            <Text
+              fw={700}
+              size="xs"
+              tt="uppercase"
+              style={{ letterSpacing: '0.07em', color: 'var(--mantine-color-gray-7)', lineHeight: 1, paddingBottom: 2 }}
+            >
               Sort &amp; Filter
             </Text>
-            <Button
-              size="xs"
-              variant="light"
-              color="gray"
-              disabled={!hasActiveFilters}
-              onClick={resetFilters}
-            >
-              Reset
-            </Button>
-          </Group>
-
-          <Box mb="xs">
             <Select
               size="xs"
-              label="Sort by"
               value={sortKey}
               onChange={(v) => setSortKey(v ?? 'date_asc')}
               allowDeselect={false}
               data={[
                 { value: 'date_asc', label: 'Oldest first' },
                 { value: 'date_desc', label: 'Newest first' },
-                { value: 'name_asc', label: 'Name A → Z' },
-                { value: 'name_desc', label: 'Name Z → A' },
-                { value: 'qty_asc', label: 'Qty low → high' },
-                { value: 'qty_desc', label: 'Qty high → low' },
+                { value: 'name_asc', label: 'Name A–Z' },
+                { value: 'name_desc', label: 'Name Z–A' },
+                { value: 'qty_asc', label: 'Qty ↑' },
+                { value: 'qty_desc', label: 'Qty ↓' },
               ]}
-              style={{ maxWidth: 180 }}
+              style={{ width: 130 }}
+              styles={{ input: { background: 'var(--mantine-color-gray-1)' } }}
             />
-          </Box>
+            <Button
+              size="xs"
+              variant="default"
+              color="gray"
+              disabled={!hasActiveFilters}
+              onClick={resetFilters}
+              style={{ marginLeft: 'auto' }}
+            >
+              Reset
+            </Button>
+          </Group>
 
-          {allCategories.length > 0 && (
-            <Box mb="xs">
-              <Text size="xs" c="dimmed" mb={6}>
-                Categories
-              </Text>
-              <Group gap={6} wrap="wrap">
-                {allCategories.map((cat) => {
-                  const active = selectedCategoryIds.includes(cat._id);
-                  return (
-                    <Badge
-                      key={cat._id}
-                      size="sm"
-                      variant={active ? 'filled' : 'light'}
-                      color="violet"
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => toggleCategory(cat._id)}
-                    >
-                      {cat.name}
-                    </Badge>
-                  );
-                })}
-              </Group>
-            </Box>
+          {/* Filter chips row */}
+          {(allCategories.length > 0 || allTags.length > 0) && (
+            <Group gap={5} wrap="wrap" align="center">
+              {allCategories.map((cat) => {
+                const active = selectedCategoryIds.includes(cat._id);
+                return (
+                  <Badge
+                    key={cat._id}
+                    size="xs"
+                    variant={active ? 'filled' : 'light'}
+                    color="violet"
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => toggleCategory(cat._id)}
+                  >
+                    {cat.name}
+                  </Badge>
+                );
+              })}
+              {allCategories.length > 0 && allTags.length > 0 && (
+                <Text size="xs" c="dimmed" style={{ lineHeight: 1 }}>·</Text>
+              )}
+              {allTags.map((tag) => {
+                const active = selectedTagIds.includes(tag._id);
+                return (
+                  <Badge
+                    key={tag._id}
+                    size="xs"
+                    variant={active ? 'filled' : 'outline'}
+                    color="gray"
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => toggleTag(tag._id)}
+                  >
+                    {tag.name}
+                  </Badge>
+                );
+              })}
+            </Group>
           )}
-
-          {allTags.length > 0 && (
-            <Box>
-              <Text size="xs" c="dimmed" mb={6}>
-                Tags
-              </Text>
-              <Group gap={6} wrap="wrap">
-                {allTags.map((tag) => {
-                  const active = selectedTagIds.includes(tag._id);
-                  return (
-                    <Badge
-                      key={tag._id}
-                      size="sm"
-                      variant={active ? 'filled' : 'outline'}
-                      color="gray"
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => toggleTag(tag._id)}
-                    >
-                      {tag.name}
-                    </Badge>
-                  );
-                })}
-              </Group>
-            </Box>
-          )}
-        </Card>
+        </Box>
       )}
 
       {loading ? (

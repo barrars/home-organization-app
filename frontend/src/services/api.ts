@@ -7,6 +7,8 @@ const api = axios.create({ baseURL: '/api' });
 export const getRooms = () => api.get<Room[]>('/rooms').then((r) => r.data);
 export const createRoom = (data: { name: string; description?: string }) =>
   api.post<Room>('/rooms', data).then((r) => r.data);
+export const updateRoom = (id: string, data: { name: string; description?: string }) =>
+  api.patch<Room>(`/rooms/${id}`, data).then((r) => r.data);
 export const deleteRoom = (id: string) => api.delete(`/rooms/${id}`);
 
 // Categories
