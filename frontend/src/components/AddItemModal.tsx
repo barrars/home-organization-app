@@ -99,11 +99,13 @@ const AddItemModal: React.FC<Props> = ({
           tags: source.tags.map((t) => (typeof t === 'string' ? t : t.name)),
           notes: source.notes,
         });
-        setPhotos(getItemImages(source).map((url, idx) => ({
-          id: `${source._id}-${idx}`,
-          url,
-          isLocal: false,
-        })));
+        setPhotos(
+          getItemImages(source).map((url, idx) => ({
+            id: `${source._id}-${idx}`,
+            url,
+            isLocal: false,
+          })),
+        );
       }
     }
   }, [opened, roomId]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -193,7 +195,7 @@ const AddItemModal: React.FC<Props> = ({
       getTags(roomId).then((tags) => setTagOptions(tags.map((t) => t.name)));
 
       form.reset();
-  clearPhotos();
+      clearPhotos();
       onCreated();
     } catch {
       notifications.show({
@@ -317,17 +319,25 @@ const AddItemModal: React.FC<Props> = ({
           <NumberInput label="Quantity" min={1} required {...form.getInputProps('quantity')} />
           <TagsInput
             label="Categories"
-            description="Required — pick existing or type to create new"
+            description="Required — pick existing or type to create new. Separate with commas."
             placeholder="e.g. Clothing, Tools..."
             data={categoryOptions}
+            splitChars={[',']}
+            clearable
+            maxDropdownHeight={150}
+            comboboxProps={{ withinPortal: false }}
             {...form.getInputProps('categories')}
             error={form.errors.categories}
           />
           <TagsInput
             label="Tags"
-            description="Optional — type to add or create tags"
+            description="Optional — separate multiple tags with commas."
             placeholder="e.g. seasonal, fragile, borrowed..."
             data={tagOptions}
+            splitChars={[',']}
+            clearable
+            maxDropdownHeight={150}
+            comboboxProps={{ withinPortal: false }}
             {...form.getInputProps('tags')}
           />
           <Textarea
