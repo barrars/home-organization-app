@@ -8,12 +8,11 @@ dist/
 build/
 out/
 
-# Environment variables
+# Environment variables — commit .env.development and .env.production (no secrets, just URLs)
+# Keep .env and .env.local ignored (may contain secrets)
 .env
 .env.local
 .env.*.local
-.env.development
-.env.production
 
 # Logs
 logs/
