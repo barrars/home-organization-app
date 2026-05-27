@@ -65,6 +65,7 @@ class ItemController {
       const populated = await Item.findById(saved._id)
         .populate('categories', 'name')
         .populate('tags', 'name')
+      getIO().emit('item:created', { id: saved._id })
       res.status(201).json(populated)
     } catch (error) {
       logger.error('Error creating item', { error })
