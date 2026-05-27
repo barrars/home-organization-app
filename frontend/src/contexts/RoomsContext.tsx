@@ -7,7 +7,9 @@ interface RoomsContextType {
   rooms: Room[];
   loading: boolean;
   refresh: () => void;
+  backgroundRefresh: () => void;
   removeRoom: (id: string) => void;
+  newRoomIds: Set<string>;
   itemCounts: Record<string, number>;
   dumpsterCount: number;
   yardSaleCount: number;
@@ -18,7 +20,9 @@ const RoomsContext = createContext<RoomsContextType>({
   rooms: [],
   loading: true,
   refresh: () => {},
+  backgroundRefresh: () => {},
   removeRoom: () => {},
+  newRoomIds: new Set(),
   itemCounts: {},
   dumpsterCount: 0,
   yardSaleCount: 0,
@@ -31,6 +35,10 @@ export const RoomsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [itemCounts, setItemCounts] = useState<Record<string, number>>({});
   const [dumpsterCount, setDumpsterCount] = useState(0);
   const [yardSaleCount, setYardSaleCount] = useState(0);
+  const [newRoomIds, setNewRoomIds] = useState<Set<string>>(new Set());
+
+  const roomsRef = useRef<Room[]>([]);
+  roomsRef.current = rooms;
 
   const refreshCounts = useCallback(async () => {
     try {
@@ -51,6 +59,26 @@ export const RoomsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     refreshCounts();
   }, [refreshCounts]);
 
+  const backgroundRefresh = useCallback(async () => {
+    try {
+      const [data, counts, dumpster, yardSale] = await Promise.all([
+        getRooms(), getItemCountsByRoom(), getDumpsterCount(), getYardSaleCount(),
+      ]);
+      const prevIds = new Set(roomsRef.current.map((r) => r._id));
+      const added = new Set(data.filter((r) => !prevIds.has(r._id)).map((r) => r._id));
+      setRooms(data);
+      setItemCounts(counts);
+      setDumpsterCount(dumpster.total);
+      setYardSaleCount(yardSale.total);
+      if (added.size > 0) {
+        setNewRoomIds(added);
+        setTimeout(() => setNewRoomIds(new Set()), 600);
+      }
+    } catch {
+      // non-critical
+    }
+  }, []);
+
   const removeRoom = useCallback((id: string) => {
     setRooms((prev) => prev.filter((r) => r._id !== id));
   }, []);
@@ -59,14 +87,14 @@ export const RoomsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     refresh();
   }, [refresh]);
 
-  // Keep a ref so the socket handler always calls the latest refresh()
+  // Keep a ref so the socket handler always calls the latest backgroundRefresh()
   // without needing to re-register listeners on every render.
-  const refreshRef = useRef(refresh);
-  useEffect(() => { refreshRef.current = refresh; });
+  const backgroundRefreshRef = useRef(backgroundRefresh);
+  useEffect(() => { backgroundRefreshRef.current = backgroundRefresh; });
 
   useEffect(() => {
     const socket = getSocket();
-    const handle = () => refreshRef.current();
+    const handle = () => backgroundRefreshRef.current();
     const events = [
       'item:created', 'item:updated', 'item:deleted',
       'item:restored', 'item:destroyed',
@@ -79,7 +107,7 @@ export const RoomsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []); // empty — registers once for the lifetime of the provider
 
   return (
-    <RoomsContext.Provider value={{ rooms, loading, refresh, removeRoom, itemCounts, dumpsterCount, yardSaleCount, refreshCounts }}>{children}</RoomsContext.Provider>
+    <RoomsContext.Provider value={{ rooms, loading, refresh, backgroundRefresh, removeRoom, newRoomIds, itemCounts, dumpsterCount, yardSaleCount, refreshCounts }}>{children}</RoomsContext.Provider>
   );
 };
 

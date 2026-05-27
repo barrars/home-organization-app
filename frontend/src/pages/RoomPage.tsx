@@ -60,6 +60,11 @@ const RoomPage: React.FC = () => {
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const [moveItem, setMoveItem] = useState<Item | null>(null);
   const [moveTargetRoomId, setMoveTargetRoomId] = useState<string | null>(null);
+  const [newItemIds, setNewItemIds] = useState<Set<string>>(new Set());
+
+  // Always-current ref so backgroundRefresh can diff without a stale closure
+  const itemsRef = useRef<Item[]>([]);
+  itemsRef.current = items;
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [sortKey, setSortKey] = useState<string>('date_asc');
@@ -92,7 +97,13 @@ const RoomPage: React.FC = () => {
     if (!roomId) return;
     try {
       const data = await getItems(roomId);
+      const prevIds = new Set(itemsRef.current.map((i) => i._id));
+      const added = new Set(data.filter((i) => !prevIds.has(i._id)).map((i) => i._id));
       setItems(data);
+      if (added.size > 0) {
+        setNewItemIds(added);
+        setTimeout(() => setNewItemIds(new Set()), 500);
+      }
     } catch {
       /* non-critical — user already sees last known state */
     }
@@ -438,7 +449,7 @@ const RoomPage: React.FC = () => {
       ) : (
         <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }}>
           {filteredItems.map((item) => (
-            <Card key={item._id} shadow="xs" padding="md" radius="md" withBorder>
+            <Card key={item._id} shadow="xs" padding="md" radius="md" withBorder className={newItemIds.has(item._id) ? 'item-enter' : undefined}>
               {/* Photo area */}
               {getItemImages(item).length > 0 ? (
                 <Card.Section mb="sm" style={{ position: 'relative' }}>
@@ -642,7 +653,7 @@ const RoomPage: React.FC = () => {
           editItem={editItem ?? undefined}
           template={templateItem ?? undefined}
           onCreated={() => {
-            loadItems();
+            backgroundRefresh();
             refreshCounts();
             setAddModalOpen(false);
             setEditItem(null);

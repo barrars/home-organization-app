@@ -23,7 +23,7 @@ import CreateRoomModal from '../components/CreateRoomModal';
 import { RoomIcon } from '../utils/roomIcons';
 
 const Dashboard: React.FC = () => {
-  const { rooms, loading, refresh, removeRoom, refreshCounts, itemCounts } = useRooms();
+  const { rooms, loading, backgroundRefresh, newRoomIds, removeRoom, refreshCounts, itemCounts } = useRooms();
   const [modalOpen, setModalOpen] = useState(false);
   const [editRoom, setEditRoom] = useState<Room | null>(null);
   const navigate = useNavigate();
@@ -90,6 +90,7 @@ const Dashboard: React.FC = () => {
                 radius="md"
                 withBorder
                 style={{ cursor: 'pointer' }}
+                className={newRoomIds.has(room._id) ? 'item-enter' : undefined}
                 onClick={() => navigate(`/rooms/${room._id}`)}
               >
                 <Group justify="space-between" mb="xs" wrap="nowrap">
@@ -138,7 +139,7 @@ const Dashboard: React.FC = () => {
         opened={modalOpen || editRoom !== null}
         onClose={() => { setModalOpen(false); setEditRoom(null); }}
         onCreated={() => {
-          refresh();
+          backgroundRefresh();
           setModalOpen(false);
           setEditRoom(null);
         }}
