@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
-import { getRooms, getItemCountsByRoom, getDumpsterCount } from '../services/api';
+import { getRooms, getItemCountsByRoom, getDumpsterCount, getYardSaleCount } from '../services/api';
 import { getSocket } from '../services/socket';
 import type { Room } from '../types';
 
@@ -10,6 +10,7 @@ interface RoomsContextType {
   removeRoom: (id: string) => void;
   itemCounts: Record<string, number>;
   dumpsterCount: number;
+  yardSaleCount: number;
   refreshCounts: () => void;
 }
 
@@ -20,6 +21,7 @@ const RoomsContext = createContext<RoomsContextType>({
   removeRoom: () => {},
   itemCounts: {},
   dumpsterCount: 0,
+  yardSaleCount: 0,
   refreshCounts: () => {},
 });
 
@@ -28,12 +30,14 @@ export const RoomsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [loading, setLoading] = useState(true);
   const [itemCounts, setItemCounts] = useState<Record<string, number>>({});
   const [dumpsterCount, setDumpsterCount] = useState(0);
+  const [yardSaleCount, setYardSaleCount] = useState(0);
 
   const refreshCounts = useCallback(async () => {
     try {
-      const [counts, dumpster] = await Promise.all([getItemCountsByRoom(), getDumpsterCount()]);
+      const [counts, dumpster, yardSale] = await Promise.all([getItemCountsByRoom(), getDumpsterCount(), getYardSaleCount()]);
       setItemCounts(counts);
       setDumpsterCount(dumpster.total);
+      setYardSaleCount(yardSale.total);
     } catch {
       // counts are non-critical — fail silently
     }
@@ -75,7 +79,7 @@ export const RoomsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []); // empty — registers once for the lifetime of the provider
 
   return (
-    <RoomsContext.Provider value={{ rooms, loading, refresh, removeRoom, itemCounts, dumpsterCount, refreshCounts }}>{children}</RoomsContext.Provider>
+    <RoomsContext.Provider value={{ rooms, loading, refresh, removeRoom, itemCounts, dumpsterCount, yardSaleCount, refreshCounts }}>{children}</RoomsContext.Provider>
   );
 };
 

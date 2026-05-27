@@ -23,7 +23,7 @@ import CreateRoomModal from '../components/CreateRoomModal';
 import { RoomIcon } from '../utils/roomIcons';
 
 const Dashboard: React.FC = () => {
-  const { rooms, loading, refresh, removeRoom, refreshCounts } = useRooms();
+  const { rooms, loading, refresh, removeRoom, refreshCounts, itemCounts } = useRooms();
   const [modalOpen, setModalOpen] = useState(false);
   const [editRoom, setEditRoom] = useState<Room | null>(null);
   const navigate = useNavigate();
@@ -118,15 +118,16 @@ const Dashboard: React.FC = () => {
                     </ActionIcon>
                   </Group>
                 </Group>
-                {room.description ? (
-                  <Text size="sm" c="dimmed" lineClamp={2}>
-                    {room.description}
-                  </Text>
-                ) : (
-                  <Badge color="blue" variant="light" size="sm">
-                    Click to view items
+                <Group justify="space-between" align="flex-end">
+                  {room.description && (
+                    <Text size="sm" c="dimmed" lineClamp={2} style={{ flex: 1 }}>
+                      {room.description}
+                    </Text>
+                  )}
+                  <Badge color="blue" variant="light" size="sm" ml={room.description ? 'xs' : 0}>
+                    {itemCounts[room._id] ?? 0} item{(itemCounts[room._id] ?? 0) !== 1 ? 's' : ''}
                   </Badge>
-                )}
+                </Group>
               </Card>
             </Grid.Col>
           ))}

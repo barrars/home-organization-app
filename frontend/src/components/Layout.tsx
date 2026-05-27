@@ -13,13 +13,13 @@ import {
   Badge,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { IconHome2, IconDoor, IconTrash } from '@tabler/icons-react';
+import { IconHome2, IconDoor, IconTrash, IconTag } from '@tabler/icons-react';
 import { useRooms } from '../contexts/RoomsContext';
 import SearchBar from './SearchBar';
 
 const Layout: React.FC = () => {
   const [opened, { toggle, close }] = useDisclosure();
-  const { rooms, loading, itemCounts, dumpsterCount } = useRooms();
+  const { rooms, loading, itemCounts, dumpsterCount, yardSaleCount } = useRooms();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -48,23 +48,51 @@ const Layout: React.FC = () => {
           label="Dashboard"
           leftSection={<IconHome2 size={16} />}
           active={location.pathname === '/'}
-          onClick={(e: React.MouseEvent) => { if (location.pathname === '/') e.preventDefault(); else close(); }}
+          onClick={(e: React.MouseEvent) => {
+            if (location.pathname === '/') e.preventDefault();
+            else close();
+          }}
           mb="xs"
         />
         <NavLink
           component={Link}
           to="/dumpster"
-          label="🗑️ The Dumpster"
+          label="The Dumpster"
           leftSection={<IconTrash size={16} />}
           rightSection={
             dumpsterCount > 0 ? (
-              <Badge size="xs" color="orange" circle>{dumpsterCount}</Badge>
+              <Badge size="xs" color="orange" circle>
+                {dumpsterCount}
+              </Badge>
             ) : undefined
           }
           active={location.pathname === '/dumpster'}
-          onClick={(e: React.MouseEvent) => { if (location.pathname === '/dumpster') e.preventDefault(); else close(); }}
+          onClick={(e: React.MouseEvent) => {
+            if (location.pathname === '/dumpster') e.preventDefault();
+            else close();
+          }}
           mb="xs"
           color="orange"
+        />
+        <NavLink
+          component={Link}
+          to="/yard-sale"
+          label="🏡 The Front Yard"
+          leftSection={<IconTag size={16} />}
+          rightSection={
+            yardSaleCount > 0 ? (
+              <Badge size="xs" color="yellow" circle>
+                {yardSaleCount}
+              </Badge>
+            ) : undefined
+          }
+          active={location.pathname === '/yard-sale'}
+          onClick={(e: React.MouseEvent) => {
+            if (location.pathname === '/yard-sale') e.preventDefault();
+            else close();
+          }}
+          mb="xs"
+          color="yellow"
         />
         <Divider mb="xs" label="Rooms" labelPosition="left" />
         <ScrollArea flex={1}>
@@ -81,11 +109,16 @@ const Layout: React.FC = () => {
                   leftSection={<IconDoor size={16} />}
                   rightSection={
                     itemCounts[room._id] ? (
-                      <Badge size="xs" color="blue" circle>{itemCounts[room._id]}</Badge>
+                      <Badge size="xs" color="blue" circle>
+                        {itemCounts[room._id]}
+                      </Badge>
                     ) : undefined
                   }
                   active={location.pathname === `/rooms/${room._id}`}
-                  onClick={(e: React.MouseEvent) => { if (location.pathname === `/rooms/${room._id}`) e.preventDefault(); else close(); }}
+                  onClick={(e: React.MouseEvent) => {
+                    if (location.pathname === `/rooms/${room._id}`) e.preventDefault();
+                    else close();
+                  }}
                   mb={4}
                 />
               ))}

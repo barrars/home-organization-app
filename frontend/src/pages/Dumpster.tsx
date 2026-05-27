@@ -74,15 +74,20 @@ const Dumpster: React.FC = () => {
     try {
       const data = await getDumpster();
       setContents(data);
-    } catch { /* non-critical */ }
+    } catch {
+      /* non-critical */
+    }
   }, []);
 
   useEffect(() => {
     const socket = getSocket();
     const events = [
-      'item:deleted', 'room:deleted',
-      'item:restored', 'room:restored',
-      'item:destroyed', 'room:destroyed',
+      'item:deleted',
+      'room:deleted',
+      'item:restored',
+      'room:restored',
+      'item:destroyed',
+      'room:destroyed',
       'dumpster:wiped',
     ];
     events.forEach((e) => socket.on(e, backgroundLoad));
@@ -232,7 +237,7 @@ const Dumpster: React.FC = () => {
       <Group justify="space-between" mb="xl" align="flex-start">
         <div>
           <Group gap="sm" mb={4}>
-            <Title order={2}>🗑️ The Dumpster</Title>
+            <Title order={2}>The Dumpster</Title>
             {!loading && totalCount > 0 && (
               <Badge color="orange" variant="filled" size="lg" radius="sm">
                 {totalCount}

@@ -41,3 +41,8 @@ export interface SearchResultItem extends Omit<Item, 'roomId'> {
   roomId: { _id: string; name: string };
   _score: number;
 }
+
+/** Item returned by the yard-sale endpoint — roomId is populated (its room is trashed) */
+export interface YardSaleItem extends Omit<Item, 'roomId'> {
+  roomId: { _id: string; name: string } | string;
+}

@@ -5,6 +5,7 @@ import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import RoomPage from './pages/RoomPage';
 import Dumpster from './pages/Dumpster';
+import YardSale from './pages/YardSale';
 import SearchResults from './pages/SearchResults';
 
 const App: React.FC = () => (
@@ -15,6 +16,7 @@ const App: React.FC = () => (
           <Route index element={<Dashboard />} />
           <Route path="rooms/:roomId" element={<RoomPage />} />
           <Route path="dumpster" element={<Dumpster />} />
+          <Route path="yard-sale" element={<YardSale />} />
           <Route path="search" element={<SearchResults />} />
         </Route>
       </Routes>

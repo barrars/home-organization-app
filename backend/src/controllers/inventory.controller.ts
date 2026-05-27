@@ -1,5 +1,6 @@
 import { Request, Response } from 'express'
 import { Item } from '../models/inventory.model'
+import { Room } from '../models/room.model'
 import logger from '../utils/logger'
 import { getIO } from '../utils/socket'
 
@@ -163,6 +164,34 @@ class ItemController {
     } catch (error) {
       logger.error('Error fetching item counts by room', { error })
       res.status(500).json({ message: 'Error fetching counts', error })
+    }
+  }
+
+  /** GET /api/items/yard-sale — active items whose room has been soft-deleted */
+  async getYardSale(_req: Request, res: Response): Promise<void> {
+    try {
+      const deletedRoomIds = await Room.find({ deletedAt: { $ne: null } }).distinct('_id')
+      const items = await Item.find({ deletedAt: null, roomId: { $in: deletedRoomIds } })
+        .populate('categories', 'name')
+        .populate('tags', 'name')
+        .populate('roomId', 'name')
+        .sort({ name: 1 })
+      res.json(items)
+    } catch (error) {
+      logger.error('Error fetching yard sale items', { error })
+      res.status(500).json({ message: 'Error fetching yard sale items', error })
+    }
+  }
+
+  /** GET /api/items/yard-sale/count */
+  async getYardSaleCount(_req: Request, res: Response): Promise<void> {
+    try {
+      const deletedRoomIds = await Room.find({ deletedAt: { $ne: null } }).distinct('_id')
+      const total = await Item.countDocuments({ deletedAt: null, roomId: { $in: deletedRoomIds } })
+      res.json({ total })
+    } catch (error) {
+      logger.error('Error counting yard sale items', { error })
+      res.status(500).json({ message: 'Error counting yard sale items', error })
     }
   }
 }

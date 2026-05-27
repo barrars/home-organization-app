@@ -30,6 +30,7 @@ import {
   IconPhoto,
   IconEdit,
   IconCopy,
+  IconArrowRight,
 } from '@tabler/icons-react';
 import { getItems, deleteItem, uploadImage, updateItem } from '../services/api';
 import { getSocket } from '../services/socket';
@@ -57,6 +58,8 @@ const RoomPage: React.FC = () => {
   const [templateItem, setTemplateItem] = useState<Item | null>(null);
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [moveItem, setMoveItem] = useState<Item | null>(null);
+  const [moveTargetRoomId, setMoveTargetRoomId] = useState<string | null>(null);
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [sortKey, setSortKey] = useState<string>('date_asc');
@@ -132,6 +135,38 @@ const RoomPage: React.FC = () => {
     } catch {
       setItems((prev) => [...prev, item].sort((a, b) => a.name.localeCompare(b.name)));
       notifications.show({ message: 'Failed to delete item', color: 'red' });
+    }
+  };
+
+  const handleMoveConfirm = async () => {
+    if (!moveItem || !moveTargetRoomId) return;
+    const targetRoom = rooms.find((r) => r._id === moveTargetRoomId);
+    const itemSnapshot = moveItem;
+    setItems((prev) => prev.filter((i) => i._id !== itemSnapshot._id));
+    setMoveItem(null);
+    setMoveTargetRoomId(null);
+    try {
+      await updateItem(itemSnapshot._id, { roomId: moveTargetRoomId });
+      refreshCounts();
+      notifications.show({
+        message: (
+          <Group gap="xs" wrap="nowrap" justify="space-between">
+            <Text size="sm">📦 "{itemSnapshot.name}" moved to {targetRoom?.name ?? 'new room'}</Text>
+            <Anchor
+              size="sm"
+              fw={600}
+              onClick={() => navigate(`/rooms/${moveTargetRoomId}`)}
+              style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}
+            >
+              Go →
+            </Anchor>
+          </Group>
+        ),
+        color: 'blue',
+      });
+    } catch {
+      setItems((prev) => [...prev, itemSnapshot]);
+      notifications.show({ message: 'Failed to move item', color: 'red' });
     }
   };
 
@@ -272,7 +307,7 @@ const RoomPage: React.FC = () => {
 
       <Group justify="space-between" mb="xl">
         <div>
-          <Title order={2}>{room?.name ?? <Loader size="sm" />}</Title>
+          <Title order={2}>{room?.name ?? '…'}</Title>
           {room?.description && (
             <Text c="dimmed" size="sm">
               {room.description}
@@ -490,6 +525,16 @@ const RoomPage: React.FC = () => {
                       <IconCopy size={14} />
                     </ActionIcon>
                   </Tooltip>
+                  <Tooltip label="Move to another room">
+                    <ActionIcon
+                      color="indigo"
+                      variant="subtle"
+                      size="sm"
+                      onClick={() => { setMoveItem(item); setMoveTargetRoomId(null); }}
+                    >
+                      <IconArrowRight size={14} />
+                    </ActionIcon>
+                  </Tooltip>
                   <ActionIcon
                     color="red"
                     variant="subtle"
@@ -537,6 +582,28 @@ const RoomPage: React.FC = () => {
           ))}
         </SimpleGrid>
       )}
+
+      <Modal
+        opened={!!moveItem}
+        onClose={() => { setMoveItem(null); setMoveTargetRoomId(null); }}
+        title={`Move "${moveItem?.name}"`}
+        size="sm"
+      >
+        <Stack gap="md">
+          <Select
+            label="Choose a destination room"
+            placeholder="Pick a room..."
+            data={rooms.filter((r) => r._id !== roomId).map((r) => ({ value: r._id, label: r.name }))}
+            value={moveTargetRoomId}
+            onChange={setMoveTargetRoomId}
+            searchable
+          />
+          <Group justify="flex-end">
+            <Button variant="default" onClick={() => { setMoveItem(null); setMoveTargetRoomId(null); }}>Cancel</Button>
+            <Button disabled={!moveTargetRoomId} onClick={handleMoveConfirm}>Move</Button>
+          </Group>
+        </Stack>
+      </Modal>
 
       <Modal
         opened={!!lightboxImage}

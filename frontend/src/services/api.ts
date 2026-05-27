@@ -1,5 +1,13 @@
 import axios from 'axios';
-import type { Room, Category, Tag, Item, DumpsterContents, SearchResultItem } from '../types';
+import type {
+  Room,
+  Category,
+  Tag,
+  Item,
+  DumpsterContents,
+  SearchResultItem,
+  YardSaleItem,
+} from '../types';
 
 const api = axios.create({ baseURL: '/api' });
 
@@ -7,8 +15,10 @@ const api = axios.create({ baseURL: '/api' });
 export const getRooms = () => api.get<Room[]>('/rooms').then((r) => r.data);
 export const createRoom = (data: { name: string; description?: string; icon?: string }) =>
   api.post<Room>('/rooms', data).then((r) => r.data);
-export const updateRoom = (id: string, data: { name: string; description?: string; icon?: string }) =>
-  api.patch<Room>(`/rooms/${id}`, data).then((r) => r.data);
+export const updateRoom = (
+  id: string,
+  data: { name: string; description?: string; icon?: string },
+) => api.patch<Room>(`/rooms/${id}`, data).then((r) => r.data);
 export const deleteRoom = (id: string) => api.delete(`/rooms/${id}`);
 
 // Categories
@@ -45,6 +55,7 @@ export const updateItem = (
     notes: string;
     imageUrl: string;
     imageUrls: string[];
+    roomId: string;
   }>,
 ) => api.patch<Item>(`/items/${id}`, data).then((r) => r.data);
 export const deleteItem = (id: string) => api.delete(`/items/${id}`);
@@ -81,3 +92,9 @@ export const restoreRoom = (id: string) =>
 export const destroyItem = (id: string) => api.delete(`/dumpster/items/${id}`);
 export const destroyRoom = (id: string) => api.delete(`/dumpster/rooms/${id}`);
 export const springCleaning = () => api.delete('/dumpster');
+
+// Yard Sale — items stranded when their room was trashed
+export const getYardSaleItems = () =>
+  api.get<YardSaleItem[]>('/items/yard-sale').then((r) => r.data);
+export const getYardSaleCount = () =>
+  api.get<{ total: number }>('/items/yard-sale/count').then((r) => r.data);
