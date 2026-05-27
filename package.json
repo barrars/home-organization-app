@@ -4,8 +4,10 @@
   "description": "The Home Organization App is a full-stack application designed to help users manage their home inventory efficiently. It features a backend built with Express.js and MongoDB, and a frontend developed using React and Tailwind CSS.",
   "main": "index.js",
   "scripts": {
+    "install:all": "npm install --prefix backend && npm install --prefix frontend",
     "dev": "concurrently --names \"backend,frontend\" --prefix-colors \"blue,green\" \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
     "build": "npm run build --prefix frontend && npm run build --prefix backend",
+    "build:all": "npm install --prefix backend && npm install --prefix frontend && npm run build --prefix frontend && npm run build --prefix backend",
     "start": "npm start --prefix backend"
   },
   "keywords": [],
