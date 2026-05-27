@@ -28,10 +28,10 @@ class RoomController {
 
   async update(req: Request, res: Response): Promise<void> {
     try {
-      const { name, description } = req.body
+      const { name, description, icon } = req.body
       const updated = await Room.findByIdAndUpdate(
         req.params.id,
-        { name, description },
+        { name, description, icon },
         { new: true, runValidators: true },
       )
       if (!updated) {

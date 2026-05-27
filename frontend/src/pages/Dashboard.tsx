@@ -20,6 +20,7 @@ import { useRooms } from '../contexts/RoomsContext';
 import { deleteRoom } from '../services/api';
 import type { Room } from '../types';
 import CreateRoomModal from '../components/CreateRoomModal';
+import { RoomIcon } from '../utils/roomIcons';
 
 const Dashboard: React.FC = () => {
   const { rooms, loading, refresh, removeRoom, refreshCounts } = useRooms();
@@ -93,7 +94,7 @@ const Dashboard: React.FC = () => {
               >
                 <Group justify="space-between" mb="xs" wrap="nowrap">
                   <Group gap="xs">
-                    <IconDoor size={20} color="var(--mantine-color-blue-6)" />
+                    <RoomIcon iconKey={room.icon} size={20} color="var(--mantine-color-blue-6)" />
                     <Text fw={600} size="lg" lineClamp={1}>
                       {room.name}
                     </Text>

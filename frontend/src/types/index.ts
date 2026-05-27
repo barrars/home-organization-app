@@ -2,6 +2,7 @@ export interface Room {
   _id: string;
   name: string;
   description: string;
+  icon: string;
   createdAt: string;
   deletedAt: string | null;
 }
