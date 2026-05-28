@@ -1,10 +1,12 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { LoadingOverlay } from '@mantine/core';
-import { initAuth } from '../services/api';
+import { initAuth, updateHomeName } from '../services/api';
 
 interface AuthState {
   token: string;
   isNew: boolean;
+  homeName: string;
+  setHomeName: (name: string) => Promise<void>;
   openRecoveryModal: () => void;
   recoveryModalOpen: boolean;
   closeRecoveryModal: () => void;
@@ -21,21 +23,26 @@ export const useAuth = (): AuthState => {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [token, setToken] = useState<string>('');
   const [isNew, setIsNew] = useState(false);
+  const [homeName, setHomeNameState] = useState('Home Organizer');
   const [ready, setReady] = useState(false);
   const [recoveryModalOpen, setRecoveryModalOpen] = useState(false);
 
   useEffect(() => {
     initAuth()
-      .then(({ token: t, isNew: n }) => {
+      .then(({ token: t, isNew: n, name }) => {
         setToken(t);
         setIsNew(n);
+        setHomeNameState(name ?? 'Home Organizer');
         if (n) setRecoveryModalOpen(true);
       })
-      .catch(() => {
-        // Silently fail — user will see an empty app; API calls will 401
-      })
+      .catch(() => {})
       .finally(() => setReady(true));
   }, []);
+
+  const setHomeName = async (name: string) => {
+    const saved = await updateHomeName(name);
+    setHomeNameState(saved);
+  };
 
   if (!ready) {
     return (
@@ -50,6 +57,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       value={{
         token,
         isNew,
+        homeName,
+        setHomeName,
         openRecoveryModal: () => setRecoveryModalOpen(true),
         recoveryModalOpen,
         closeRecoveryModal: () => setRecoveryModalOpen(false),

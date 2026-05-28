@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   AppShell,
+  ActionIcon,
   Burger,
-  Button,
   Group,
   NavLink,
   Text,
@@ -12,9 +12,19 @@ import {
   Skeleton,
   Title,
   Badge,
+  Tooltip,
+  TextInput,
+  Modal,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { IconHome2, IconDoor, IconTrash, IconTag, IconShare } from '@tabler/icons-react';
+import {
+  IconHome2,
+  IconDoor,
+  IconTrash,
+  IconTag,
+  IconShare,
+  IconSettings,
+} from '@tabler/icons-react';
 import { useRooms } from '../contexts/RoomsContext';
 import { useAuth } from '../contexts/AuthContext';
 import SearchBar from './SearchBar';
@@ -23,9 +33,23 @@ import RecoveryModal from './RecoveryModal';
 const Layout: React.FC = () => {
   const [opened, { toggle, close }] = useDisclosure();
   const { rooms, loading, itemCounts, dumpsterCount, yardSaleCount } = useRooms();
-  const { recoveryModalOpen, openRecoveryModal, closeRecoveryModal, isNew } = useAuth();
+  const { recoveryModalOpen, openRecoveryModal, closeRecoveryModal, isNew, homeName, setHomeName } =
+    useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [nameInput, setNameInput] = useState('');
+
+  const openSettings = () => {
+    setNameInput(homeName);
+    setSettingsOpen(true);
+  };
+
+  const saveSettings = async () => {
+    if (nameInput.trim()) await setHomeName(nameInput.trim());
+    setSettingsOpen(false);
+  };
 
   return (
     <AppShell
@@ -38,19 +62,16 @@ const Layout: React.FC = () => {
           <Group>
             <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
             <Title order={4} c="blue.7" style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
-              🏠 Home Organizer
+              🏠 {homeName}
             </Title>
           </Group>
           <Group gap="xs">
             <SearchBar />
-            <Button
-              variant="light"
-              size="xs"
-              leftSection={<IconShare size={14} />}
-              onClick={openRecoveryModal}
-            >
-              Share
-            </Button>
+            <Tooltip label="Share this household" withArrow position="bottom">
+              <ActionIcon variant="light" size="md" onClick={openRecoveryModal} aria-label="Share">
+                <IconShare size={16} />
+              </ActionIcon>
+            </Tooltip>
           </Group>
         </Group>
       </AppShell.Header>
@@ -166,12 +187,52 @@ const Layout: React.FC = () => {
               </Text>
             )}
           </ScrollArea>
+
+          <Divider mt="xs" mb={4} label="Settings" labelPosition="left" />
+          <NavLink
+            label="Home Settings"
+            leftSection={<IconSettings size={18} />}
+            onClick={openSettings}
+            style={{ borderRadius: 8 }}
+          />
         </div>
       </AppShell.Navbar>
 
       <AppShell.Main>
         <Outlet />
       </AppShell.Main>
+
+      <Modal
+        opened={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        title="Home Settings"
+        centered
+        size="sm"
+      >
+        <TextInput
+          label="Home name"
+          description="Shown in the header and shared with all household members"
+          value={nameInput}
+          onChange={(e) => setNameInput(e.currentTarget.value)}
+          maxLength={50}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') saveSettings();
+          }}
+          autoFocus
+        />
+        <Group justify="flex-end" mt="md">
+          <ActionIcon
+            variant="filled"
+            color="blue"
+            size="lg"
+            onClick={saveSettings}
+            aria-label="Save home name"
+            disabled={!nameInput.trim()}
+          >
+            ✓
+          </ActionIcon>
+        </Group>
+      </Modal>
     </AppShell>
   );
 };

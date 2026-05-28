@@ -13,9 +13,11 @@ const api = axios.create({ baseURL: '/api', withCredentials: true });
 
 // Auth
 export const initAuth = () =>
-  api.post<{ token: string; isNew: boolean }>('/auth/init').then((r) => r.data);
+  api.post<{ token: string; isNew: boolean; name: string }>('/auth/init').then((r) => r.data);
 export const getShareUrl = () =>
   api.get<{ joinUrl: string }>('/auth/share').then((r) => r.data.joinUrl);
+export const updateHomeName = (name: string) =>
+  api.patch<{ name: string }>('/auth/home', { name }).then((r) => r.data.name);
 
 // Rooms
 export const getRooms = () => api.get<Room[]>('/rooms').then((r) => r.data);

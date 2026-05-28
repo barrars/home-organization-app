@@ -3,6 +3,7 @@ import mongoose, { Schema, Document } from 'mongoose'
 
 export interface IHome extends Document {
   token: string
+  name: string
 }
 
 const homeSchema = new Schema<IHome>(
@@ -13,6 +14,11 @@ const homeSchema = new Schema<IHome>(
       unique: true,
       index: true,
       default: () => crypto.randomBytes(32).toString('hex'),
+    },
+    name: {
+      type: String,
+      default: 'Home Organizer',
+      maxlength: 50,
     },
   },
   { timestamps: true },

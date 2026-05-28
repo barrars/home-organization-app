@@ -32,7 +32,7 @@ class AuthController {
         if (existing) {
           // Refresh the cookie TTL on every init call
           setCookie(res, existing.token)
-          res.json({ token: existing.token, isNew: false })
+          res.json({ token: existing.token, isNew: false, name: existing.name })
           return
         }
       }
@@ -42,7 +42,7 @@ class AuthController {
       const home = await Home.create({ token })
       setCookie(res, home.token)
       logger.info('New home created', { homeId: home._id })
-      res.status(201).json({ token: home.token, isNew: true })
+      res.status(201).json({ token: home.token, isNew: true, name: home.name })
     } catch (error) {
       logger.error('Error during auth init', { error })
       res.status(500).json({ message: 'Failed to initialize home' })
@@ -93,6 +93,30 @@ class AuthController {
     } catch (error) {
       logger.error('Error generating share link', { error })
       res.status(500).json({ message: 'Failed to generate share link' })
+    }
+  }
+
+  /**
+   * PATCH /api/auth/home
+   * Updates mutable home properties (currently: name). Requires auth middleware.
+   */
+  async patchHome(req: Request, res: Response): Promise<void> {
+    try {
+      const { name } = req.body as { name?: string }
+      if (!name || typeof name !== 'string') {
+        res.status(400).json({ message: 'name is required' })
+        return
+      }
+      const trimmed = name.trim().slice(0, 50)
+      if (!trimmed) {
+        res.status(400).json({ message: 'name cannot be empty' })
+        return
+      }
+      await req.home.updateOne({ name: trimmed })
+      res.json({ name: trimmed })
+    } catch (error) {
+      logger.error('Error updating home', { error })
+      res.status(500).json({ message: 'Failed to update home' })
     }
   }
 }
