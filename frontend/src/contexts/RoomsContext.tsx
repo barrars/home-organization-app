@@ -106,6 +106,20 @@ export const RoomsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return () => { events.forEach((e) => socket.off(e, handle)); };
   }, []); // empty — registers once for the lifetime of the provider
 
+  // When the page becomes visible again (e.g. returning from background on mobile),
+  // reconnect the socket if needed and do a silent data refresh.
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        const socket = getSocket();
+        if (!socket.connected) socket.connect();
+        backgroundRefreshRef.current();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', onVisibilityChange);
+  }, []);
+
   return (
     <RoomsContext.Provider value={{ rooms, loading, refresh, backgroundRefresh, removeRoom, newRoomIds, itemCounts, dumpsterCount, yardSaleCount, refreshCounts }}>{children}</RoomsContext.Provider>
   );

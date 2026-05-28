@@ -37,6 +37,7 @@ import { getItems, deleteItem, uploadImage, updateItem } from '../services/api';
 import { getSocket } from '../services/socket';
 import { useRooms } from '../contexts/RoomsContext';
 import AddItemModal from '../components/AddItemModal';
+import CreateRoomModal from '../components/CreateRoomModal';
 import type { Item } from '../types';
 import { RoomIcon } from '../utils/roomIcons';
 
@@ -63,6 +64,7 @@ const RoomPage: React.FC = () => {
   const [moveItem, setMoveItem] = useState<Item | null>(null);
   const [moveTargetRoomId, setMoveTargetRoomId] = useState<string | null>(null);
   const [newItemIds, setNewItemIds] = useState<Set<string>>(new Set());
+  const [createRoomOpen, setCreateRoomOpen] = useState(false);
 
   // Always-current ref so backgroundRefresh can diff without a stale closure
   const itemsRef = useRef<Item[]>([]);
@@ -311,32 +313,52 @@ const RoomPage: React.FC = () => {
         onChange={handlePhotoChange}
       />
 
-      <ScrollArea mb="md" type="hover">
-        <Tabs
-          value={roomId}
-          onChange={(v) => v && navigate(`/rooms/${v}`)}
-          styles={{ list: { flexWrap: 'nowrap' } }}
-        >
-          <Tabs.List>
-            {rooms.map((r) => (
-              <Tabs.Tab
-                key={r._id}
-                value={r._id}
-                leftSection={<RoomIcon iconKey={r.icon} size={14} />}
-                rightSection={
-                  itemCounts[r._id] ? (
-                    <Badge size="xs" color="blue" circle variant="light">
-                      {itemCounts[r._id]}
-                    </Badge>
-                  ) : undefined
-                }
-              >
-                {r.name}
-              </Tabs.Tab>
-            ))}
-          </Tabs.List>
-        </Tabs>
-      </ScrollArea>
+      <Group mb="md" align="flex-end" gap={0} wrap="nowrap">
+        <ScrollArea style={{ flex: 1 }} type="hover">
+          <Tabs
+            value={roomId}
+            onChange={(v) => v && navigate(`/rooms/${v}`)}
+            styles={{ list: { flexWrap: 'nowrap' } }}
+          >
+            <Tabs.List>
+              {rooms.map((r) => (
+                <Tabs.Tab
+                  key={r._id}
+                  value={r._id}
+                  leftSection={<RoomIcon iconKey={r.icon} size={14} />}
+                  rightSection={
+                    itemCounts[r._id] ? (
+                      <Badge size="xs" color="blue" circle variant="light">
+                        {itemCounts[r._id]}
+                      </Badge>
+                    ) : undefined
+                  }
+                >
+                  {r.name}
+                </Tabs.Tab>
+              ))}
+            </Tabs.List>
+          </Tabs>
+        </ScrollArea>
+        <Tooltip label="Add room" withArrow position="top">
+          <ActionIcon
+            variant="subtle"
+            color="gray"
+            size="md"
+            mb={4}
+            onClick={() => setCreateRoomOpen(true)}
+            aria-label="Add room"
+          >
+            <IconPlus size={16} />
+          </ActionIcon>
+        </Tooltip>
+      </Group>
+
+      <CreateRoomModal
+        opened={createRoomOpen}
+        onClose={() => setCreateRoomOpen(false)}
+        onCreated={() => setCreateRoomOpen(false)}
+      />
 
       <Group justify="space-between" mb="xl">
         <div>
