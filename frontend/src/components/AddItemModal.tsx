@@ -115,6 +115,26 @@ const AddItemModal: React.FC<Props> = ({
     if (!opened) clearPhotos();
   }, [opened, clearPhotos]);
 
+  // Mobile virtual keyboards often don't fire keydown with a real key for comma,
+  // so splitChars={[',']} silently fails. On blur we read any pending text from
+  // the underlying <input> and split it ourselves — desktop is unaffected because
+  // the splitChars handler already committed the tags before blur fires.
+  const makeTagsBlurHandler =
+    (field: 'categories' | 'tags') =>
+    (e: React.FocusEvent<HTMLInputElement>) => {
+      const raw = e.currentTarget.value.trim();
+      if (!raw) return;
+      const parts = raw
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+      if (parts.length === 0) return;
+      const current: string[] = form.values[field];
+      form.setFieldValue(field, Array.from(new Set([...current, ...parts])));
+      // Clear the pending text so Mantine doesn't re-add it
+      e.currentTarget.value = '';
+    };
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -328,6 +348,7 @@ const AddItemModal: React.FC<Props> = ({
             comboboxProps={{ withinPortal: false }}
             {...form.getInputProps('categories')}
             error={form.errors.categories}
+            inputProps={{ onBlur: makeTagsBlurHandler('categories') }}
           />
           <TagsInput
             label="Tags"
@@ -339,6 +360,7 @@ const AddItemModal: React.FC<Props> = ({
             maxDropdownHeight={150}
             comboboxProps={{ withinPortal: false }}
             {...form.getInputProps('tags')}
+            inputProps={{ onBlur: makeTagsBlurHandler('tags') }}
           />
           <Textarea
             label="Notes"
