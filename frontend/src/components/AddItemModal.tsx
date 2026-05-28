@@ -119,21 +119,25 @@ const AddItemModal: React.FC<Props> = ({
   // so splitChars={[',']} silently fails. On blur we read any pending text from
   // the underlying <input> and split it ourselves — desktop is unaffected because
   // the splitChars handler already committed the tags before blur fires.
-  const makeTagsBlurHandler =
-    (field: 'categories' | 'tags') =>
-    (e: React.FocusEvent<HTMLInputElement>) => {
-      const raw = e.currentTarget.value.trim();
-      if (!raw) return;
-      const parts = raw
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean);
-      if (parts.length === 0) return;
-      const current: string[] = form.values[field];
-      form.setFieldValue(field, Array.from(new Set([...current, ...parts])));
-      // Clear the pending text so Mantine doesn't re-add it
-      e.currentTarget.value = '';
-    };
+  // Mobile virtual keyboards often don't fire keydown with a real key for comma,
+  // so splitChars={[',']} silently fails. On blur we read any pending text from
+  // the underlying <input> and split it ourselves — desktop is unaffected because
+  // the splitChars handler already committed the tags before blur fires.
+  function handleTagsBlur(field: 'categories' | 'tags', e: React.FocusEvent<HTMLElement>) {
+    // e.target is the inner <input> that actually lost focus
+    if (!(e.target instanceof HTMLInputElement)) return;
+    const raw = e.target.value.trim();
+    if (!raw) return;
+    const parts = raw
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (parts.length === 0) return;
+    const current: string[] = form.values[field];
+    form.setFieldValue(field, Array.from(new Set([...current, ...parts])));
+    // Clear the pending text so Mantine doesn't re-add it
+    e.target.value = '';
+  }
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -337,31 +341,33 @@ const AddItemModal: React.FC<Props> = ({
             {...form.getInputProps('name')}
           />
           <NumberInput label="Quantity" min={1} required {...form.getInputProps('quantity')} />
-          <TagsInput
-            label="Categories"
-            description="Required — pick existing or type to create new. Separate with commas."
-            placeholder="e.g. Clothing, Tools..."
-            data={categoryOptions}
-            splitChars={[',']}
-            clearable
-            maxDropdownHeight={150}
-            comboboxProps={{ withinPortal: false }}
-            {...form.getInputProps('categories')}
-            error={form.errors.categories}
-            inputProps={{ onBlur: makeTagsBlurHandler('categories') }}
-          />
-          <TagsInput
-            label="Tags"
-            description="Optional — separate multiple tags with commas."
-            placeholder="e.g. seasonal, fragile, borrowed..."
-            data={tagOptions}
-            splitChars={[',']}
-            clearable
-            maxDropdownHeight={150}
-            comboboxProps={{ withinPortal: false }}
-            {...form.getInputProps('tags')}
-            inputProps={{ onBlur: makeTagsBlurHandler('tags') }}
-          />
+          <Box onBlur={(e) => handleTagsBlur('categories', e)}>
+            <TagsInput
+              label="Categories"
+              description="Required — pick existing or type to create new. Separate with commas."
+              placeholder="e.g. Clothing, Tools..."
+              data={categoryOptions}
+              splitChars={[',']}
+              clearable
+              maxDropdownHeight={150}
+              comboboxProps={{ withinPortal: false }}
+              {...form.getInputProps('categories')}
+              error={form.errors.categories}
+            />
+          </Box>
+          <Box onBlur={(e) => handleTagsBlur('tags', e)}>
+            <TagsInput
+              label="Tags"
+              description="Optional — separate multiple tags with commas."
+              placeholder="e.g. seasonal, fragile, borrowed..."
+              data={tagOptions}
+              splitChars={[',']}
+              clearable
+              maxDropdownHeight={150}
+              comboboxProps={{ withinPortal: false }}
+              {...form.getInputProps('tags')}
+            />
+          </Box>
           <Textarea
             label="Notes"
             placeholder="Optional notes..."
