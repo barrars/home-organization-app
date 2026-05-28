@@ -7,6 +7,7 @@ node_modules/
 dist/
 build/
 out/
+backend/public/assets/
 
 # Environment variables — commit .env.development and .env.production (no secrets, just URLs)
 # Keep .env and .env.local ignored (may contain secrets)
