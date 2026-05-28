@@ -16,6 +16,8 @@ export const initAuth = () =>
   api.post<{ token: string; isNew: boolean; name: string }>('/auth/init').then((r) => r.data);
 export const getShareUrl = () =>
   api.get<{ joinUrl: string }>('/auth/share').then((r) => r.data.joinUrl);
+export const switchHome = (token: string) =>
+  api.post<{ token: string; name: string }>('/auth/switch', { token }).then((r) => r.data);
 export const updateHomeName = (name: string) =>
   api.patch<{ name: string }>('/auth/home', { name }).then((r) => r.data.name);
 

@@ -30,12 +30,15 @@ app.use(express.static(path.resolve(__dirname, '../public')))
 app.use(morgan('combined', { stream: morganStream }))
 
 // Middleware
+const isProd = process.env.NODE_ENV === 'production'
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',')
   : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5000']
 app.use(
   cors({
     origin: (origin, callback) => {
+      // In dev, allow all origins (network IPs, etc.)
+      if (!isProd) return callback(null, true)
       // Allow requests with no origin (e.g. same-origin, curl)
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true)

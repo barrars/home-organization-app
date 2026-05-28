@@ -24,6 +24,8 @@ import {
   IconTag,
   IconShare,
   IconSettings,
+  IconX,
+  IconCheck,
 } from '@tabler/icons-react';
 import { useRooms } from '../contexts/RoomsContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -33,8 +35,18 @@ import RecoveryModal from './RecoveryModal';
 const Layout: React.FC = () => {
   const [opened, { toggle, close }] = useDisclosure();
   const { rooms, loading, itemCounts, dumpsterCount, yardSaleCount } = useRooms();
-  const { recoveryModalOpen, openRecoveryModal, closeRecoveryModal, isNew, homeName, setHomeName } =
-    useAuth();
+  const {
+    recoveryModalOpen,
+    openRecoveryModal,
+    closeRecoveryModal,
+    isNew,
+    homeName,
+    setHomeName,
+    homes,
+    token,
+    switchHome,
+    leaveHome,
+  } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -58,7 +70,7 @@ const Layout: React.FC = () => {
       padding="md"
     >
       <AppShell.Header>
-        <Group h="100%" px="md" justify="space-between">
+        <Group h="100%" px="md" justify="space-between" wrap="nowrap">
           <Group>
             <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
             <Title order={4} c="blue.7" style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
@@ -232,6 +244,65 @@ const Layout: React.FC = () => {
             ✓
           </ActionIcon>
         </Group>
+
+        {homes.length > 1 && (
+          <>
+            <Divider my="md" label="Connected households" labelPosition="left" />
+            <Text size="xs" c="dimmed" mb="xs">
+              Switch to another household or leave one you've joined.
+            </Text>
+            {homes.map((h) => {
+              const isActive = h.token === token;
+              return (
+                <Group
+                  key={h.token}
+                  justify="space-between"
+                  mb={6}
+                  wrap="nowrap"
+                  style={{
+                    padding: '6px 10px',
+                    borderRadius: 8,
+                    background: isActive ? 'var(--mantine-color-blue-0)' : undefined,
+                    border: isActive
+                      ? '1px solid var(--mantine-color-blue-2)'
+                      : '1px solid transparent',
+                  }}
+                >
+                  <Text
+                    size="sm"
+                    fw={isActive ? 600 : 400}
+                    c={isActive ? 'blue.7' : undefined}
+                    style={{ cursor: isActive ? 'default' : 'pointer', flex: 1, minWidth: 0 }}
+                    truncate
+                    onClick={() => {
+                      if (!isActive) switchHome(h.token);
+                    }}
+                  >
+                    {h.name}
+                  </Text>
+                  {isActive ? (
+                    <IconCheck
+                      size={16}
+                      color="var(--mantine-color-blue-6)"
+                      style={{ flexShrink: 0 }}
+                    />
+                  ) : (
+                    <ActionIcon
+                      size="sm"
+                      variant="subtle"
+                      color="red"
+                      aria-label={`Leave ${h.name}`}
+                      onClick={() => leaveHome(h.token)}
+                      style={{ flexShrink: 0 }}
+                    >
+                      <IconX size={14} />
+                    </ActionIcon>
+                  )}
+                </Group>
+              );
+            })}
+          </>
+        )}
       </Modal>
     </AppShell>
   );

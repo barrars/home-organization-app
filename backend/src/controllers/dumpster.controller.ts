@@ -2,7 +2,7 @@ import { Request, Response } from 'express'
 import { Item } from '../models/inventory.model'
 import { Room } from '../models/room.model'
 import logger from '../utils/logger'
-import { getIO } from '../utils/socket'
+import { emitToHome } from '../utils/socket'
 
 class DumpsterController {
   /** GET /api/dumpster — all soft-deleted items and rooms for this home */
@@ -37,7 +37,7 @@ class DumpsterController {
         return
       }
       logger.info('Item restored from dumpster', { id: req.params.id, name: item.name })
-      getIO().emit('item:restored', { id: req.params.id })
+      emitToHome(req.homeId, 'item:restored', { id: req.params.id })
       res.json(item)
     } catch (error) {
       logger.error('Error restoring item', { id: req.params.id, error })
@@ -58,7 +58,7 @@ class DumpsterController {
         return
       }
       logger.info('Room restored from dumpster', { id: req.params.id, name: room.name })
-      getIO().emit('room:restored', { id: req.params.id })
+      emitToHome(req.homeId, 'room:restored', { id: req.params.id })
       res.json(room)
     } catch (error) {
       logger.error('Error restoring room', { id: req.params.id, error })
@@ -71,7 +71,7 @@ class DumpsterController {
     try {
       await Item.findOneAndDelete({ _id: req.params.id, homeId: req.homeId })
       logger.info('Item permanently deleted', { id: req.params.id })
-      getIO().emit('item:destroyed', { id: req.params.id })
+      emitToHome(req.homeId, 'item:destroyed', { id: req.params.id })
       res.json({ message: 'Item permanently deleted' })
     } catch (error) {
       logger.error('Error permanently deleting item', { id: req.params.id, error })
@@ -84,7 +84,7 @@ class DumpsterController {
     try {
       await Room.findOneAndDelete({ _id: req.params.id, homeId: req.homeId })
       logger.info('Room permanently deleted', { id: req.params.id })
-      getIO().emit('room:destroyed', { id: req.params.id })
+      emitToHome(req.homeId, 'room:destroyed', { id: req.params.id })
       res.json({ message: 'Room permanently deleted' })
     } catch (error) {
       logger.error('Error permanently deleting room', { id: req.params.id, error })
@@ -103,7 +103,7 @@ class DumpsterController {
         itemsDeleted: itemResult.deletedCount,
         roomsDeleted: roomResult.deletedCount,
       })
-      getIO().emit('dumpster:wiped', {})
+      emitToHome(req.homeId, 'dumpster:wiped', {})
       res.json({
         message: 'Dumpster emptied',
         itemsDeleted: itemResult.deletedCount,

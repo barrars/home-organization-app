@@ -99,7 +99,7 @@ const SearchBar: React.FC = () => {
           onKeyDown={handleKeyDown}
           leftSection={loading ? <Loader size={14} /> : <IconSearch size={14} />}
           size="sm"
-          w={{ base: 160, sm: 240 }}
+          w={{ base: 110, sm: 240 }}
           styles={{ input: { borderRadius: 20 } }}
         />
       </Combobox.Target>

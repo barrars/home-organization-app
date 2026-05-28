@@ -97,6 +97,33 @@ class AuthController {
   }
 
   /**
+   * POST /api/auth/switch
+   * Switches the active home cookie to a different home the device already knows about.
+   * The frontend passes a token it has stored in localStorage. We validate it exists in
+   * MongoDB, then set it as the active cookie so the next request uses that home.
+   */
+  async switch(req: Request, res: Response): Promise<void> {
+    try {
+      const { token } = req.body as { token?: string }
+      if (!token || typeof token !== 'string' || !/^[a-f0-9]{64}$/.test(token)) {
+        res.status(400).json({ message: 'Invalid token format' })
+        return
+      }
+      const home = await Home.findOne({ token })
+      if (!home) {
+        res.status(404).json({ message: 'Home not found.' })
+        return
+      }
+      setCookie(res, home.token)
+      logger.info('Device switched active home', { homeId: home._id })
+      res.json({ token: home.token, name: home.name })
+    } catch (error) {
+      logger.error('Error switching home', { error })
+      res.status(500).json({ message: 'Failed to switch home' })
+    }
+  }
+
+  /**
    * PATCH /api/auth/home
    * Updates mutable home properties (currently: name). Requires auth middleware.
    */
