@@ -1,6 +1,7 @@
-import mongoose, { Schema, Document } from 'mongoose'
+import mongoose, { Schema, Document, Types } from 'mongoose'
 
 export interface IItem extends Document {
+  homeId: Types.ObjectId
   name: string
   quantity: number
   roomId: mongoose.Types.ObjectId
@@ -14,6 +15,7 @@ export interface IItem extends Document {
 
 const itemSchema = new Schema<IItem>(
   {
+    homeId: { type: Schema.Types.ObjectId, ref: 'Home', required: true, index: true },
     name: { type: String, required: true, trim: true },
     quantity: { type: Number, required: true, min: 1, default: 1 },
     roomId: { type: Schema.Types.ObjectId, ref: 'Room', required: true },
@@ -26,5 +28,7 @@ const itemSchema = new Schema<IItem>(
   },
   { timestamps: true },
 )
+
+itemSchema.index({ homeId: 1, roomId: 1 })
 
 export const Item = mongoose.model<IItem>('Item', itemSchema)

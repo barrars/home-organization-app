@@ -4,9 +4,9 @@ import logger from '../utils/logger'
 import { getIO } from '../utils/socket'
 
 class RoomController {
-  async getAll(_req: Request, res: Response): Promise<void> {
+  async getAll(req: Request, res: Response): Promise<void> {
     try {
-      const rooms = await Room.find({ deletedAt: null }).sort({ name: 1 })
+      const rooms = await Room.find({ homeId: req.homeId, deletedAt: null }).sort({ name: 1 })
       res.json(rooms)
     } catch (error) {
       logger.error('Error fetching rooms', { error })
@@ -16,7 +16,7 @@ class RoomController {
 
   async create(req: Request, res: Response): Promise<void> {
     try {
-      const room = new Room(req.body)
+      const room = new Room({ ...req.body, homeId: req.homeId })
       const saved = await room.save()
       getIO().emit('room:created', { id: saved._id })
       res.status(201).json(saved)
@@ -29,8 +29,8 @@ class RoomController {
   async update(req: Request, res: Response): Promise<void> {
     try {
       const { name, description, icon } = req.body
-      const updated = await Room.findByIdAndUpdate(
-        req.params.id,
+      const updated = await Room.findOneAndUpdate(
+        { _id: req.params.id, homeId: req.homeId },
         { name, description, icon },
         { new: true, runValidators: true },
       )
@@ -48,7 +48,10 @@ class RoomController {
 
   async remove(req: Request, res: Response): Promise<void> {
     try {
-      await Room.findByIdAndUpdate(req.params.id, { deletedAt: new Date() })
+      await Room.findOneAndUpdate(
+        { _id: req.params.id, homeId: req.homeId },
+        { deletedAt: new Date() },
+      )
       getIO().emit('room:deleted', { id: req.params.id })
       res.json({ message: 'Room moved to dumpster' })
     } catch (error) {

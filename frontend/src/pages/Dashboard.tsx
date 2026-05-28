@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Title,
   Text,
@@ -12,13 +12,15 @@ import {
   Badge,
   ActionIcon,
   Anchor,
+  Divider,
+  SimpleGrid,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconPlus, IconDoor, IconTrash, IconEdit } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
 import { useRooms } from '../contexts/RoomsContext';
-import { deleteRoom } from '../services/api';
-import type { Room } from '../types';
+import { deleteRoom, getItems, getTags } from '../services/api';
+import type { Room, Item, Tag } from '../types';
 import CreateRoomModal from '../components/CreateRoomModal';
 import { RoomIcon } from '../utils/roomIcons';
 
@@ -26,7 +28,26 @@ const Dashboard: React.FC = () => {
   const { rooms, loading, backgroundRefresh, newRoomIds, removeRoom, refreshCounts, itemCounts } = useRooms();
   const [modalOpen, setModalOpen] = useState(false);
   const [editRoom, setEditRoom] = useState<Room | null>(null);
+  const [recentItems, setRecentItems] = useState<Item[]>([]);
+  const [tags, setTags] = useState<Tag[]>([]);
+  const [loadingExtras, setLoadingExtras] = useState(true);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([getItems(), getTags()])
+      .then(([items, allTags]) => {
+        if (cancelled) return;
+        const sorted = [...items].sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        );
+        setRecentItems(sorted.slice(0, 6));
+        setTags(allTags);
+      })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setLoadingExtras(false); });
+    return () => { cancelled = true; };
+  }, []);
 
   const handleDelete = async (e: React.MouseEvent, room: Room) => {
     e.stopPropagation();
@@ -145,6 +166,71 @@ const Dashboard: React.FC = () => {
         }}
         editRoom={editRoom ?? undefined}
       />
+
+      {/* ── Recently Added ────────────────────────────── */}
+      <Divider mt="xl" mb="md" label="Recently Added" labelPosition="left" />
+      {loadingExtras ? (
+        <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="sm">
+          {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} h={80} radius="md" />)}
+        </SimpleGrid>
+      ) : recentItems.length === 0 ? (
+        <Text size="sm" c="dimmed">No items yet — add some to a room to see them here.</Text>
+      ) : (
+        <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="sm">
+          {recentItems.map((item) => {
+            const room = rooms.find((r) => r._id === item.roomId);
+            return (
+              <Card
+                key={item._id}
+                withBorder
+                radius="md"
+                padding="sm"
+                style={{ cursor: 'pointer' }}
+                onClick={() => navigate(`/rooms/${item.roomId}`)}
+              >
+                <Group justify="space-between" wrap="nowrap" mb={2}>
+                  <Text size="sm" fw={500} lineClamp={1}>{item.name}</Text>
+                  {item.quantity > 1 && (
+                    <Badge size="xs" color="blue" variant="light">×{item.quantity}</Badge>
+                  )}
+                </Group>
+                {room && (
+                  <Text size="xs" c="dimmed">
+                    <RoomIcon iconKey={room.icon} size={11} /> {room.name}
+                  </Text>
+                )}
+                {item.tags.length > 0 && (
+                  <Group gap={4} mt={4}>
+                    {item.tags.slice(0, 4).map((t) => (
+                      <Badge key={t._id} size="xs" variant="outline" color="gray">{t.name}</Badge>
+                    ))}
+                  </Group>
+                )}
+              </Card>
+            );
+          })}
+        </SimpleGrid>
+      )}
+
+      {/* ── Tags in Use ───────────────────────────────── */}
+      {!loadingExtras && tags.length > 0 && (
+        <>
+          <Divider mt="xl" mb="md" label="Tags in Use" labelPosition="left" />
+          <Group gap="xs">
+            {tags.map((tag) => (
+              <Badge
+                key={tag._id}
+                variant="outline"
+                color="gray"
+                style={{ cursor: 'pointer' }}
+                onClick={() => navigate(`/search?q=${encodeURIComponent(tag.name)}`)}
+              >
+                {tag.name}
+              </Badge>
+            ))}
+          </Group>
+        </>
+      )}
     </>
   );
 };

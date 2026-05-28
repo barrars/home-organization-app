@@ -46,7 +46,7 @@ function normalizeImagePayload(payload: Record<string, unknown>): Record<string,
 class ItemController {
   async getAll(req: Request, res: Response): Promise<void> {
     try {
-      const filter: Record<string, unknown> = { deletedAt: null }
+      const filter: Record<string, unknown> = { homeId: req.homeId, deletedAt: null }
       if (req.query.roomId) filter.roomId = req.query.roomId
       const items = await Item.find(filter)
         .populate('categories', 'name')
@@ -61,7 +61,8 @@ class ItemController {
 
   async create(req: Request, res: Response): Promise<void> {
     try {
-      const item = new Item(normalizeImagePayload(req.body as Record<string, unknown>))
+      const payload = normalizeImagePayload(req.body as Record<string, unknown>)
+      const item = new Item({ ...payload, homeId: req.homeId })
       const saved = await item.save()
       const populated = await Item.findById(saved._id)
         .populate('categories', 'name')
@@ -76,9 +77,11 @@ class ItemController {
 
   async bulkInsert(req: Request, res: Response): Promise<void> {
     try {
-      const docs = Array.isArray(req.body)
-        ? req.body.map((row) => normalizeImagePayload(row as Record<string, unknown>))
-        : req.body
+      const rows = Array.isArray(req.body) ? req.body : [req.body]
+      const docs = rows.map((row) => ({
+        ...normalizeImagePayload(row as Record<string, unknown>),
+        homeId: req.homeId,
+      }))
       const result = await Item.insertMany(docs)
       getIO().emit('item:created', { bulk: true })
       res.status(201).json({ message: 'Items added successfully', result })
@@ -87,11 +90,12 @@ class ItemController {
       res.status(400).json({ message: 'Error adding items', error })
     }
   }
+
   async patch(req: Request, res: Response): Promise<void> {
     try {
       const updatePayload = normalizeImagePayload(req.body as Record<string, unknown>)
-      const item = await Item.findByIdAndUpdate(
-        req.params.id,
+      const item = await Item.findOneAndUpdate(
+        { _id: req.params.id, homeId: req.homeId },
         { $set: updatePayload },
         { returnDocument: 'after' },
       )
@@ -104,9 +108,13 @@ class ItemController {
       res.status(400).json({ message: 'Error updating item', error })
     }
   }
+
   async remove(req: Request, res: Response): Promise<void> {
     try {
-      await Item.findByIdAndUpdate(req.params.id, { deletedAt: new Date() })
+      await Item.findOneAndUpdate(
+        { _id: req.params.id, homeId: req.homeId },
+        { deletedAt: new Date() },
+      )
       getIO().emit('item:deleted', { id: req.params.id })
       res.json({ message: 'Item moved to dumpster' })
     } catch (error) {
@@ -119,9 +127,12 @@ class ItemController {
   async search(req: Request, res: Response): Promise<void> {
     try {
       const q = String(req.query.q ?? '').trim()
-      if (!q) { res.json([]); return }
+      if (!q) {
+        res.json([])
+        return
+      }
 
-      const items = await Item.find({ deletedAt: null })
+      const items = await Item.find({ homeId: req.homeId, deletedAt: null })
         .populate('categories', 'name')
         .populate('tags', 'name')
         .populate('roomId', 'name')
@@ -129,7 +140,9 @@ class ItemController {
 
       const scored = items
         .map((item) => {
-          const catNames = (item.categories as unknown as { name: string }[]).map((c) => c.name).join(' ')
+          const catNames = (item.categories as unknown as { name: string }[])
+            .map((c) => c.name)
+            .join(' ')
           const tagNames = (item.tags as unknown as { name: string }[]).map((t) => t.name).join(' ')
           const best = Math.max(
             fuzzyScore(q, item.name),
@@ -150,10 +163,10 @@ class ItemController {
   }
 
   /** GET /api/items/counts-by-room — active item count per room */
-  async countsByRoom(_req: Request, res: Response): Promise<void> {
+  async countsByRoom(req: Request, res: Response): Promise<void> {
     try {
       const agg = await Item.aggregate([
-        { $match: { deletedAt: null } },
+        { $match: { homeId: req.homeId, deletedAt: null } },
         { $group: { _id: '$roomId', count: { $sum: 1 } } },
       ])
       const result: Record<string, number> = {}
@@ -168,10 +181,17 @@ class ItemController {
   }
 
   /** GET /api/items/yard-sale — active items whose room has been soft-deleted */
-  async getYardSale(_req: Request, res: Response): Promise<void> {
+  async getYardSale(req: Request, res: Response): Promise<void> {
     try {
-      const deletedRoomIds = await Room.find({ deletedAt: { $ne: null } }).distinct('_id')
-      const items = await Item.find({ deletedAt: null, roomId: { $in: deletedRoomIds } })
+      const deletedRoomIds = await Room.find({
+        homeId: req.homeId,
+        deletedAt: { $ne: null },
+      }).distinct('_id')
+      const items = await Item.find({
+        homeId: req.homeId,
+        deletedAt: null,
+        roomId: { $in: deletedRoomIds },
+      })
         .populate('categories', 'name')
         .populate('tags', 'name')
         .populate('roomId', 'name')
@@ -184,10 +204,17 @@ class ItemController {
   }
 
   /** GET /api/items/yard-sale/count */
-  async getYardSaleCount(_req: Request, res: Response): Promise<void> {
+  async getYardSaleCount(req: Request, res: Response): Promise<void> {
     try {
-      const deletedRoomIds = await Room.find({ deletedAt: { $ne: null } }).distinct('_id')
-      const total = await Item.countDocuments({ deletedAt: null, roomId: { $in: deletedRoomIds } })
+      const deletedRoomIds = await Room.find({
+        homeId: req.homeId,
+        deletedAt: { $ne: null },
+      }).distinct('_id')
+      const total = await Item.countDocuments({
+        homeId: req.homeId,
+        deletedAt: null,
+        roomId: { $in: deletedRoomIds },
+      })
       res.json({ total })
     } catch (error) {
       logger.error('Error counting yard sale items', { error })

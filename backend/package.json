@@ -5,7 +5,7 @@
   "main": "src/app.ts",
   "scripts": {
     "start": "node dist/app.js",
-    "dev": "ts-node-dev --respawn src/app.ts",
+    "dev": "ts-node-dev --files --respawn src/app.ts",
     "build": "tsc",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -13,8 +13,11 @@
     "format:check": "prettier --check \"src/**/*.{ts,js,json}\""
   },
   "dependencies": {
+    "@types/cookie-parser": "^1.4.10",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.5.2",
     "mongoose": "^9.6.2",
     "morgan": "^1.10.1",
     "multer": "^2.1.1",

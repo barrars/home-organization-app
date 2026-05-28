@@ -8,11 +8,11 @@ class TagController {
     try {
       const { roomId } = req.query as { roomId?: string }
       if (roomId) {
-        const tagIds = await Item.find({ roomId }).distinct('tags')
-        const tags = await Tag.find({ _id: { $in: tagIds } }).sort({ name: 1 })
+        const tagIds = await Item.find({ homeId: req.homeId, roomId }).distinct('tags')
+        const tags = await Tag.find({ homeId: req.homeId, _id: { $in: tagIds } }).sort({ name: 1 })
         res.json(tags)
       } else {
-        const tags = await Tag.find().sort({ name: 1 })
+        const tags = await Tag.find({ homeId: req.homeId }).sort({ name: 1 })
         res.json(tags)
       }
     } catch (error) {
@@ -31,8 +31,8 @@ class TagController {
       }
 
       const tag = await Tag.findOneAndUpdate(
-        { name: normalizedName },
-        { name: normalizedName },
+        { homeId: req.homeId, name: normalizedName },
+        { homeId: req.homeId, name: normalizedName },
         {
           upsert: true,
           returnDocument: 'after',

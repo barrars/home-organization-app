@@ -3,9 +3,9 @@ import { Category } from '../models/category.model'
 import logger from '../utils/logger'
 
 class CategoryController {
-  async getAll(_req: Request, res: Response): Promise<void> {
+  async getAll(req: Request, res: Response): Promise<void> {
     try {
-      const categories = await Category.find().sort({ name: 1 })
+      const categories = await Category.find({ homeId: req.homeId }).sort({ name: 1 })
       res.json(categories)
     } catch (error) {
       logger.error('Error fetching categories', { error })
@@ -16,9 +16,10 @@ class CategoryController {
   async findOrCreate(req: Request, res: Response): Promise<void> {
     try {
       const { name } = req.body as { name: string }
+      const trimmed = name.trim()
       const category = await Category.findOneAndUpdate(
-        { name: name.trim() },
-        { name: name.trim() },
+        { homeId: req.homeId, name: trimmed },
+        { homeId: req.homeId, name: trimmed },
         { upsert: true, returnDocument: 'after' },
       )
       res.status(201).json(category)

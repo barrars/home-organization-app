@@ -5,15 +5,15 @@ import logger from '../utils/logger'
 import { getIO } from '../utils/socket'
 
 class DumpsterController {
-  /** GET /api/dumpster — all soft-deleted items and rooms */
-  async getAll(_req: Request, res: Response): Promise<void> {
+  /** GET /api/dumpster — all soft-deleted items and rooms for this home */
+  async getAll(req: Request, res: Response): Promise<void> {
     try {
       const [items, rooms] = await Promise.all([
-        Item.find({ deletedAt: { $ne: null } })
+        Item.find({ homeId: req.homeId, deletedAt: { $ne: null } })
           .populate('categories', 'name')
           .populate('tags', 'name')
           .sort({ deletedAt: -1 }),
-        Room.find({ deletedAt: { $ne: null } }).sort({ deletedAt: -1 }),
+        Room.find({ homeId: req.homeId, deletedAt: { $ne: null } }).sort({ deletedAt: -1 }),
       ])
       res.json({ items, rooms })
     } catch (error) {
@@ -25,8 +25,8 @@ class DumpsterController {
   /** POST /api/dumpster/items/:id/restore */
   async restoreItem(req: Request, res: Response): Promise<void> {
     try {
-      const item = await Item.findByIdAndUpdate(
-        req.params.id,
+      const item = await Item.findOneAndUpdate(
+        { _id: req.params.id, homeId: req.homeId },
         { deletedAt: null },
         { returnDocument: 'after' },
       )
@@ -48,8 +48,8 @@ class DumpsterController {
   /** POST /api/dumpster/rooms/:id/restore */
   async restoreRoom(req: Request, res: Response): Promise<void> {
     try {
-      const room = await Room.findByIdAndUpdate(
-        req.params.id,
+      const room = await Room.findOneAndUpdate(
+        { _id: req.params.id, homeId: req.homeId },
         { deletedAt: null },
         { returnDocument: 'after' },
       )
@@ -69,7 +69,7 @@ class DumpsterController {
   /** DELETE /api/dumpster/items/:id — permanently delete one item */
   async destroyItem(req: Request, res: Response): Promise<void> {
     try {
-      await Item.findByIdAndDelete(req.params.id)
+      await Item.findOneAndDelete({ _id: req.params.id, homeId: req.homeId })
       logger.info('Item permanently deleted', { id: req.params.id })
       getIO().emit('item:destroyed', { id: req.params.id })
       res.json({ message: 'Item permanently deleted' })
@@ -82,7 +82,7 @@ class DumpsterController {
   /** DELETE /api/dumpster/rooms/:id — permanently delete one room */
   async destroyRoom(req: Request, res: Response): Promise<void> {
     try {
-      await Room.findByIdAndDelete(req.params.id)
+      await Room.findOneAndDelete({ _id: req.params.id, homeId: req.homeId })
       logger.info('Room permanently deleted', { id: req.params.id })
       getIO().emit('room:destroyed', { id: req.params.id })
       res.json({ message: 'Room permanently deleted' })
@@ -92,12 +92,12 @@ class DumpsterController {
     }
   }
 
-  /** DELETE /api/dumpster — spring cleaning: permanently delete everything in trash */
-  async springCleaning(_req: Request, res: Response): Promise<void> {
+  /** DELETE /api/dumpster — spring cleaning: permanently delete everything in trash for this home */
+  async springCleaning(req: Request, res: Response): Promise<void> {
     try {
       const [itemResult, roomResult] = await Promise.all([
-        Item.deleteMany({ deletedAt: { $ne: null } }),
-        Room.deleteMany({ deletedAt: { $ne: null } }),
+        Item.deleteMany({ homeId: req.homeId, deletedAt: { $ne: null } }),
+        Room.deleteMany({ homeId: req.homeId, deletedAt: { $ne: null } }),
       ])
       logger.info('Spring cleaning complete', {
         itemsDeleted: itemResult.deletedCount,
@@ -115,12 +115,12 @@ class DumpsterController {
     }
   }
 
-  /** GET /api/dumpster/count — total trashed items + rooms */
-  async getCount(_req: Request, res: Response): Promise<void> {
+  /** GET /api/dumpster/count — total trashed items + rooms for this home */
+  async getCount(req: Request, res: Response): Promise<void> {
     try {
       const [items, rooms] = await Promise.all([
-        Item.countDocuments({ deletedAt: { $ne: null } }),
-        Room.countDocuments({ deletedAt: { $ne: null } }),
+        Item.countDocuments({ homeId: req.homeId, deletedAt: { $ne: null } }),
+        Room.countDocuments({ homeId: req.homeId, deletedAt: { $ne: null } }),
       ])
       res.json({ items, rooms, total: items + rooms })
     } catch (error) {

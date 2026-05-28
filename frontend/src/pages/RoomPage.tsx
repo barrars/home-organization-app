@@ -13,13 +13,14 @@ import {
   ActionIcon,
   SimpleGrid,
   Divider,
-  Breadcrumbs,
   Anchor,
   Image,
   Box,
   Tooltip,
   Modal,
   Select,
+  Tabs,
+  ScrollArea,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import {
@@ -37,6 +38,7 @@ import { getSocket } from '../services/socket';
 import { useRooms } from '../contexts/RoomsContext';
 import AddItemModal from '../components/AddItemModal';
 import type { Item } from '../types';
+import { RoomIcon } from '../utils/roomIcons';
 
 const getItemImages = (item: Item): string[] => {
   if (Array.isArray(item.imageUrls) && item.imageUrls.length > 0) {
@@ -47,7 +49,7 @@ const getItemImages = (item: Item): string[] => {
 
 const RoomPage: React.FC = () => {
   const { roomId } = useParams<{ roomId: string }>();
-  const { rooms, refreshCounts } = useRooms();
+  const { rooms, refreshCounts, itemCounts } = useRooms();
   const navigate = useNavigate();
   const room = rooms.find((r) => r._id === roomId);
 
@@ -309,12 +311,32 @@ const RoomPage: React.FC = () => {
         onChange={handlePhotoChange}
       />
 
-      <Breadcrumbs mb="md">
-        <Anchor onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
-          Dashboard
-        </Anchor>
-        <Text>{room?.name ?? '…'}</Text>
-      </Breadcrumbs>
+      <ScrollArea mb="md" type="hover">
+        <Tabs
+          value={roomId}
+          onChange={(v) => v && navigate(`/rooms/${v}`)}
+          styles={{ list: { flexWrap: 'nowrap' } }}
+        >
+          <Tabs.List>
+            {rooms.map((r) => (
+              <Tabs.Tab
+                key={r._id}
+                value={r._id}
+                leftSection={<RoomIcon iconKey={r.icon} size={14} />}
+                rightSection={
+                  itemCounts[r._id] ? (
+                    <Badge size="xs" color="blue" circle variant="light">
+                      {itemCounts[r._id]}
+                    </Badge>
+                  ) : undefined
+                }
+              >
+                {r.name}
+              </Tabs.Tab>
+            ))}
+          </Tabs.List>
+        </Tabs>
+      </ScrollArea>
 
       <Group justify="space-between" mb="xl">
         <div>

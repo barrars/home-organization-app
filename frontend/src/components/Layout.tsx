@@ -3,6 +3,7 @@ import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   AppShell,
   Burger,
+  Button,
   Group,
   NavLink,
   Text,
@@ -13,13 +14,16 @@ import {
   Badge,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { IconHome2, IconDoor, IconTrash, IconTag } from '@tabler/icons-react';
+import { IconHome2, IconDoor, IconTrash, IconTag, IconShare } from '@tabler/icons-react';
 import { useRooms } from '../contexts/RoomsContext';
+import { useAuth } from '../contexts/AuthContext';
 import SearchBar from './SearchBar';
+import RecoveryModal from './RecoveryModal';
 
 const Layout: React.FC = () => {
   const [opened, { toggle, close }] = useDisclosure();
   const { rooms, loading, itemCounts, dumpsterCount, yardSaleCount } = useRooms();
+  const { recoveryModalOpen, openRecoveryModal, closeRecoveryModal, isNew } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -37,9 +41,20 @@ const Layout: React.FC = () => {
               🏠 Home Organizer
             </Title>
           </Group>
-          <SearchBar />
+          <Group gap="xs">
+            <SearchBar />
+            <Button
+              variant="light"
+              size="xs"
+              leftSection={<IconShare size={14} />}
+              onClick={openRecoveryModal}
+            >
+              Share
+            </Button>
+          </Group>
         </Group>
       </AppShell.Header>
+      <RecoveryModal opened={recoveryModalOpen} onClose={closeRecoveryModal} isNew={isNew} />
 
       {opened && (
         <div
