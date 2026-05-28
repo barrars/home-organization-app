@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
+import { notifications } from '@mantine/notifications';
 import { getRooms, getItemCountsByRoom, getDumpsterCount, getYardSaleCount } from '../services/api';
 import { getSocket } from '../services/socket';
+import { getStoredHomes } from './AuthContext';
 import type { Room } from '../types';
 
 interface RoomsContextType {
@@ -94,16 +96,48 @@ export const RoomsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   useEffect(() => {
     const socket = getSocket();
-    const handle = () => backgroundRefreshRef.current();
-    const events = [
-      'item:created', 'item:updated', 'item:deleted',
-      'item:restored', 'item:destroyed',
-      'room:created', 'room:updated', 'room:deleted',
-      'room:restored', 'room:destroyed',
-      'dumpster:wiped',
-    ];
-    events.forEach((e) => socket.on(e, handle));
-    return () => { events.forEach((e) => socket.off(e, handle)); };
+
+    const eventMessages: Record<string, string> = {
+      'item:created': 'A new item was added',
+      'item:updated': 'An item was updated',
+      'item:deleted': 'An item was trashed',
+      'item:restored': 'An item was restored',
+      'item:destroyed': 'An item was permanently deleted',
+      'room:created': 'A new room was created',
+      'room:updated': 'A room was updated',
+      'room:deleted': 'A room was trashed',
+      'room:restored': 'A room was restored',
+      'room:destroyed': 'A room was permanently deleted',
+      'dumpster:wiped': 'The trash was emptied',
+    };
+
+    const handle = (event: string) => (payload: { homeId?: string }) => {
+      const activeId = localStorage.getItem('home_organizer_active_id');
+      const isActiveHome = !payload.homeId || !activeId || payload.homeId === activeId;
+
+      if (isActiveHome) {
+        backgroundRefreshRef.current();
+      } else {
+        // Find the source home by its stored id so we can show its name
+        const storedHomes = getStoredHomes();
+        const sourceHome = storedHomes.find((h) => h.id === payload.homeId);
+        const sourceName = sourceHome?.name ?? 'Another household';
+
+        notifications.show({
+          title: sourceName,
+          message: eventMessages[event] ?? 'Something changed',
+          color: 'blue',
+          autoClose: 5000,
+        });
+      }
+    };
+
+    const events = Object.keys(eventMessages);
+    // Build the handler map once so the same function references are used
+    // for both socket.on and socket.off — otherwise cleanup can't deregister them.
+    const handlers = Object.fromEntries(events.map((e) => [e, handle(e)]));
+    events.forEach((e) => socket.on(e, handlers[e]));
+    return () => { events.forEach((e) => socket.off(e, handlers[e])); };
   }, []); // empty — registers once for the lifetime of the provider
 
   // When the page becomes visible again (e.g. returning from background on mobile),

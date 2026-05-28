@@ -37,7 +37,7 @@ class DumpsterController {
         return
       }
       logger.info('Item restored from dumpster', { id: req.params.id, name: item.name })
-      emitToHome(req.homeId, 'item:restored', { id: req.params.id })
+      emitToHome(req.homeId, 'item:restored', { id: req.params.id, homeId: req.homeId })
       res.json(item)
     } catch (error) {
       logger.error('Error restoring item', { id: req.params.id, error })
@@ -58,7 +58,7 @@ class DumpsterController {
         return
       }
       logger.info('Room restored from dumpster', { id: req.params.id, name: room.name })
-      emitToHome(req.homeId, 'room:restored', { id: req.params.id })
+      emitToHome(req.homeId, 'room:restored', { id: req.params.id, homeId: req.homeId })
       res.json(room)
     } catch (error) {
       logger.error('Error restoring room', { id: req.params.id, error })
@@ -71,7 +71,7 @@ class DumpsterController {
     try {
       await Item.findOneAndDelete({ _id: req.params.id, homeId: req.homeId })
       logger.info('Item permanently deleted', { id: req.params.id })
-      emitToHome(req.homeId, 'item:destroyed', { id: req.params.id })
+      emitToHome(req.homeId, 'item:destroyed', { id: req.params.id, homeId: req.homeId })
       res.json({ message: 'Item permanently deleted' })
     } catch (error) {
       logger.error('Error permanently deleting item', { id: req.params.id, error })
@@ -84,7 +84,7 @@ class DumpsterController {
     try {
       await Room.findOneAndDelete({ _id: req.params.id, homeId: req.homeId })
       logger.info('Room permanently deleted', { id: req.params.id })
-      emitToHome(req.homeId, 'room:destroyed', { id: req.params.id })
+      emitToHome(req.homeId, 'room:destroyed', { id: req.params.id, homeId: req.homeId })
       res.json({ message: 'Room permanently deleted' })
     } catch (error) {
       logger.error('Error permanently deleting room', { id: req.params.id, error })
@@ -103,7 +103,7 @@ class DumpsterController {
         itemsDeleted: itemResult.deletedCount,
         roomsDeleted: roomResult.deletedCount,
       })
-      emitToHome(req.homeId, 'dumpster:wiped', {})
+      emitToHome(req.homeId, 'dumpster:wiped', { homeId: req.homeId })
       res.json({
         message: 'Dumpster emptied',
         itemsDeleted: itemResult.deletedCount,

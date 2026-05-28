@@ -18,7 +18,7 @@ class RoomController {
     try {
       const room = new Room({ ...req.body, homeId: req.homeId })
       const saved = await room.save()
-      emitToHome(req.homeId, 'room:created', { id: saved._id })
+      emitToHome(req.homeId, 'room:created', { id: saved._id, homeId: req.homeId })
       res.status(201).json(saved)
     } catch (error) {
       logger.error('Error creating room', { error })
@@ -38,7 +38,7 @@ class RoomController {
         res.status(404).json({ message: 'Room not found' })
         return
       }
-      emitToHome(req.homeId, 'room:updated', { id: updated._id })
+      emitToHome(req.homeId, 'room:updated', { id: updated._id, homeId: req.homeId })
       res.json(updated)
     } catch (error) {
       logger.error('Error updating room', { id: req.params.id, error })
@@ -52,7 +52,7 @@ class RoomController {
         { _id: req.params.id, homeId: req.homeId },
         { deletedAt: new Date() },
       )
-      emitToHome(req.homeId, 'room:deleted', { id: req.params.id })
+      emitToHome(req.homeId, 'room:deleted', { id: req.params.id, homeId: req.homeId })
       res.json({ message: 'Room moved to dumpster' })
     } catch (error) {
       logger.error('Error deleting room', { id: req.params.id, error })

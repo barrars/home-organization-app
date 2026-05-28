@@ -20,6 +20,10 @@ import { authMiddleware } from './middleware/authMiddleware'
 const app = express()
 const PORT = process.env.PORT || 5000
 
+// Trust the Vite dev proxy (and any reverse proxy in prod) so that
+// express-rate-limit reads X-Forwarded-For correctly instead of erroring.
+app.set('trust proxy', 1)
+
 // Static files — served BEFORE CORS so the Origin check never runs for assets.
 // The crossorigin attribute on Vite's <script>/<link> tags sends an Origin header
 // even for same-site requests, which would otherwise trigger a CORS rejection.

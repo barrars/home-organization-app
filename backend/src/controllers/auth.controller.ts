@@ -32,7 +32,7 @@ class AuthController {
         if (existing) {
           // Refresh the cookie TTL on every init call
           setCookie(res, existing.token)
-          res.json({ token: existing.token, isNew: false, name: existing.name })
+          res.json({ id: existing._id, token: existing.token, isNew: false, name: existing.name })
           return
         }
       }
@@ -42,7 +42,7 @@ class AuthController {
       const home = await Home.create({ token })
       setCookie(res, home.token)
       logger.info('New home created', { homeId: home._id })
-      res.status(201).json({ token: home.token, isNew: true, name: home.name })
+      res.status(201).json({ id: home._id, token: home.token, isNew: true, name: home.name })
     } catch (error) {
       logger.error('Error during auth init', { error })
       res.status(500).json({ message: 'Failed to initialize home' })
@@ -116,7 +116,7 @@ class AuthController {
       }
       setCookie(res, home.token)
       logger.info('Device switched active home', { homeId: home._id })
-      res.json({ token: home.token, name: home.name })
+      res.json({ id: home._id, token: home.token, name: home.name })
     } catch (error) {
       logger.error('Error switching home', { error })
       res.status(500).json({ message: 'Failed to switch home' })

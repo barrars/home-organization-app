@@ -67,7 +67,7 @@ class ItemController {
       const populated = await Item.findById(saved._id)
         .populate('categories', 'name')
         .populate('tags', 'name')
-      emitToHome(req.homeId, 'item:created', { id: saved._id })
+      emitToHome(req.homeId, 'item:created', { id: saved._id, homeId: req.homeId })
       res.status(201).json(populated)
     } catch (error) {
       logger.error('Error creating item', { error })
@@ -83,7 +83,7 @@ class ItemController {
         homeId: req.homeId,
       }))
       const result = await Item.insertMany(docs)
-      emitToHome(req.homeId, 'item:created', { bulk: true })
+      emitToHome(req.homeId, 'item:created', { bulk: true, homeId: req.homeId })
       res.status(201).json({ message: 'Items added successfully', result })
     } catch (error) {
       logger.error('Error bulk inserting items', { error })
@@ -101,7 +101,7 @@ class ItemController {
       )
         .populate('categories', 'name')
         .populate('tags', 'name')
-      emitToHome(req.homeId, 'item:updated', { id: req.params.id })
+      emitToHome(req.homeId, 'item:updated', { id: req.params.id, homeId: req.homeId })
       res.json(item)
     } catch (error) {
       logger.error('Error updating item', { id: req.params.id, error })
@@ -115,7 +115,7 @@ class ItemController {
         { _id: req.params.id, homeId: req.homeId },
         { deletedAt: new Date() },
       )
-      emitToHome(req.homeId, 'item:deleted', { id: req.params.id })
+      emitToHome(req.homeId, 'item:deleted', { id: req.params.id, homeId: req.homeId })
       res.json({ message: 'Item moved to dumpster' })
     } catch (error) {
       logger.error('Error deleting item', { id: req.params.id, error })
