@@ -20,6 +20,12 @@ import { authMiddleware } from './middleware/authMiddleware'
 const app = express()
 const PORT = process.env.PORT || 5000
 
+// Static files — served BEFORE CORS so the Origin check never runs for assets.
+// The crossorigin attribute on Vite's <script>/<link> tags sends an Origin header
+// even for same-site requests, which would otherwise trigger a CORS rejection.
+app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')))
+app.use(express.static(path.resolve(__dirname, '../public')))
+
 // HTTP request logging via morgan → winston
 app.use(morgan('combined', { stream: morganStream }))
 
@@ -54,12 +60,6 @@ mongoose
     logger.error('MongoDB connection error', { error: err })
     process.exit(1)
   })
-
-// Static uploads
-app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')))
-
-// Serve built frontend
-app.use(express.static(path.resolve(__dirname, '../public')))
 
 // Auth routes — no authMiddleware here (init and join are public)
 app.use('/api/auth', authRouter)
