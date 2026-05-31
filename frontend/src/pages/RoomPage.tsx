@@ -22,6 +22,8 @@ import {
   Tabs,
   ScrollArea,
 } from '@mantine/core';
+import { Carousel } from '@mantine/carousel';
+import '@mantine/carousel/styles.css';
 import { notifications } from '@mantine/notifications';
 import {
   IconPlus,
@@ -67,6 +69,7 @@ const RoomPage: React.FC = () => {
   const [moveTargetRoomId, setMoveTargetRoomId] = useState<string | null>(null);
   const [newItemIds, setNewItemIds] = useState<Set<string>>(new Set());
   const [createRoomOpen, setCreateRoomOpen] = useState(false);
+  const [editRoomOpen, setEditRoomOpen] = useState(false);
   const [shareLinkTarget, setShareLinkTarget] = useState<{ type: 'room' | 'item'; id: string; name: string } | null>(null);
 
   // Always-current ref so backgroundRefresh can diff without a stale closure
@@ -196,21 +199,21 @@ const RoomPage: React.FC = () => {
   };
 
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const files = e.target.files;
     const itemId = activeItemIdRef.current;
-    if (!file || !itemId) return;
+    if (!files || files.length === 0 || !itemId) return;
 
     setUploadingFor(itemId);
     try {
-      const newImageUrl = await uploadImage(file);
+      const newUrls = await Promise.all(Array.from(files).map((f) => uploadImage(f)));
       const currentItem = items.find((i) => i._id === itemId);
       const currentImages = currentItem ? getItemImages(currentItem) : [];
-      const imageUrls = [...currentImages, newImageUrl];
+      const imageUrls = [...currentImages, ...newUrls];
       await updateItem(itemId, { imageUrls });
       setItems((prev) =>
         prev.map((i) => (i._id === itemId ? { ...i, imageUrls, imageUrl: imageUrls[0] ?? '' } : i)),
       );
-      notifications.show({ message: 'Photo added!', color: 'green' });
+      notifications.show({ message: `${newUrls.length > 1 ? `${newUrls.length} photos` : 'Photo'} added!`, color: 'green' });
     } catch {
       notifications.show({ message: 'Failed to upload photo', color: 'red' });
     } finally {
@@ -314,6 +317,7 @@ const RoomPage: React.FC = () => {
         ref={photoInputRef}
         type="file"
         accept="image/*"
+        multiple
         style={{ display: 'none' }}
         onChange={handlePhotoChange}
       />
@@ -365,20 +369,44 @@ const RoomPage: React.FC = () => {
         onCreated={() => setCreateRoomOpen(false)}
       />
 
+      <CreateRoomModal
+        opened={editRoomOpen}
+        onClose={() => setEditRoomOpen(false)}
+        onCreated={() => setEditRoomOpen(false)}
+        editRoom={room}
+      />
+
       <Group justify="space-between" mb="xl">
-        <div>
-          <Title order={2}>{room?.name ?? '…'}</Title>
-          {room?.description && (
-            <Text c="dimmed" size="sm">
-              {room.description}
-            </Text>
-          )}
-          {!loading && (
-            <Text size="xs" c="dimmed" mt={4}>
-              {filteredItems.length} of {items.length} item{items.length !== 1 ? 's' : ''}
-            </Text>
-          )}
-        </div>
+        <Group gap={6} align="center">
+          <div>
+            <Group gap={6} align="center">
+              <Title order={2}>{room?.name ?? '…'}</Title>
+              {room && (
+                <Tooltip label="Edit room" withArrow position="top">
+                  <ActionIcon
+                    variant="subtle"
+                    color="gray"
+                    size="sm"
+                    onClick={() => setEditRoomOpen(true)}
+                    aria-label="Edit room"
+                  >
+                    <IconEdit size={14} />
+                  </ActionIcon>
+                </Tooltip>
+              )}
+            </Group>
+            {room?.description && (
+              <Text c="dimmed" size="sm">
+                {room.description}
+              </Text>
+            )}
+            {!loading && (
+              <Text size="xs" c="dimmed" mt={4}>
+                {filteredItems.length} of {items.length} item{items.length !== 1 ? 's' : ''}
+              </Text>
+            )}
+          </div>
+        </Group>
         <Button leftSection={<IconPlus size={16} />} onClick={() => setAddModalOpen(true)}>
           Add Item
         </Button>
@@ -529,26 +557,42 @@ const RoomPage: React.FC = () => {
               {/* Photo area */}
               {getItemImages(item).length > 0 ? (
                 <Card.Section mb="sm" style={{ position: 'relative' }}>
-                  {getItemImages(item).length > 1 && (
-                    <Badge
-                      size="xs"
-                      variant="filled"
-                      color="dark"
-                      style={{ position: 'absolute', top: 8, left: 8, zIndex: 2 }}
-                    >
-                      +{getItemImages(item).length - 1}
-                    </Badge>
+                  {getItemImages(item).length > 1 ? (
+                    <div style={{ position: 'relative' }}>
+                      <Badge
+                        size="xs"
+                        variant="filled"
+                        color="dark"
+                        style={{ position: 'absolute', top: 8, left: 8, zIndex: 10, pointerEvents: 'none' }}
+                      >
+                        {getItemImages(item).length} photos
+                      </Badge>
+                      <Carousel loop withIndicators height={160}>
+                        {getItemImages(item).map((url, idx) => (
+                          <Carousel.Slide key={idx}>
+                            <Image
+                              src={url}
+                              height={160}
+                              fit="scale-down"
+                              style={{ cursor: 'zoom-in' }}
+                              onClick={() => setLightboxImage(url)}
+                            />
+                          </Carousel.Slide>
+                        ))}
+                      </Carousel>
+                    </div>
+                  ) : (
+                    <Image
+                      src={getItemImages(item)[0]}
+                      height={160}
+                      fit="scale-down"
+                      style={{ cursor: 'zoom-in' }}
+                      onClick={() => setLightboxImage(getItemImages(item)[0])}
+                    />
                   )}
-                  <Image
-                    src={getItemImages(item)[0]}
-                    height={160}
-                    fit="scale-down"
-                    style={{ cursor: 'zoom-in' }}
-                    onClick={() => setLightboxImage(getItemImages(item)[0])}
-                  />
-                  <Tooltip label="Add another photo">
+                  <Tooltip label="Add photo(s)">
                     <ActionIcon
-                      style={{ position: 'absolute', bottom: 8, right: 8 }}
+                      style={{ position: 'absolute', bottom: 8, right: 8, zIndex: 3 }}
                       size="sm"
                       variant="filled"
                       color="dark"

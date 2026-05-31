@@ -14,6 +14,8 @@ import {
   ActionIcon,
   Divider,
 } from '@mantine/core';
+import { Carousel } from '@mantine/carousel';
+import '@mantine/carousel/styles.css';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { IconCamera, IconUpload, IconX, IconPhoto } from '@tabler/icons-react';
@@ -284,22 +286,57 @@ const AddItemModal: React.FC<Props> = ({
             </Group>
 
             {photos.length > 0 ? (
-              <Group gap="xs" wrap="wrap">
-                {photos.map((photo) => (
-                  <Box key={photo.id} style={{ position: 'relative' }}>
-                    <Image src={photo.url} radius="md" w={84} h={84} fit="cover" />
-                    <ActionIcon
-                      style={{ position: 'absolute', top: 4, right: 4 }}
-                      color="red"
-                      variant="filled"
-                      size="xs"
-                      onClick={() => removePhoto(photo.id)}
-                    >
-                      <IconX size={11} />
-                    </ActionIcon>
-                  </Box>
-                ))}
-              </Group>
+              <Stack gap="xs">
+                {/* Carousel — only shown when more than one photo */}
+                {photos.length > 1 && (
+                  <Carousel
+                    withIndicators
+                    loop
+                    height={200}
+                    style={{ borderRadius: 8, overflow: 'hidden' }}
+                  >
+                    {photos.map((photo) => (
+                      <Carousel.Slide key={photo.id}>
+                        <Image
+                          src={photo.url}
+                          h={200}
+                          fit="contain"
+                          style={{ background: 'var(--mantine-color-gray-1)' }}
+                        />
+                      </Carousel.Slide>
+                    ))}
+                  </Carousel>
+                )}
+
+                {/* Single image — show full-width preview */}
+                {photos.length === 1 && (
+                  <Image
+                    src={photos[0].url}
+                    radius="md"
+                    h={160}
+                    fit="contain"
+                    style={{ background: 'var(--mantine-color-gray-1)' }}
+                  />
+                )}
+
+                {/* Thumbnail strip with per-image remove buttons */}
+                <Group gap="xs" wrap="wrap">
+                  {photos.map((photo) => (
+                    <Box key={photo.id} style={{ position: 'relative' }}>
+                      <Image src={photo.url} radius="md" w={64} h={64} fit="cover" />
+                      <ActionIcon
+                        style={{ position: 'absolute', top: 2, right: 2 }}
+                        color="red"
+                        variant="filled"
+                        size="xs"
+                        onClick={() => removePhoto(photo.id)}
+                      >
+                        <IconX size={10} />
+                      </ActionIcon>
+                    </Box>
+                  ))}
+                </Group>
+              </Stack>
             ) : (
               <Box
                 style={{
