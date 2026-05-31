@@ -338,6 +338,7 @@ const AddItemModal: React.FC<Props> = ({
             label="Item Name"
             placeholder="e.g. T-shirt, Winter jacket, Drill..."
             required
+            data-autofocus
             {...form.getInputProps('name')}
           />
           <NumberInput label="Quantity" min={1} required {...form.getInputProps('quantity')} />

@@ -52,7 +52,7 @@ class NotificationController {
       const notification = await Notification.findOneAndUpdate(
         { _id: id, homeId: req.homeId },
         { read: true },
-        { new: true },
+        { returnDocument: 'after' },
       )
       if (!notification) {
         res.status(404).json({ message: 'Notification not found' })

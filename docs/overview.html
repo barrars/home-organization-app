@@ -1,0 +1,1003 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GetOrganized — Project Overview</title>
+    <style>
+      /* ── Reset & Base ──────────────────────────────────── */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --bg: #0f1117;
+        --surface: #1a1d27;
+        --surface2: #222535;
+        --border: #2e3249;
+        --accent: #6c63ff;
+        --accent2: #a78bfa;
+        --green: #34d399;
+        --amber: #fbbf24;
+        --red: #f87171;
+        --sky: #38bdf8;
+        --text: #e2e8f0;
+        --muted: #94a3b8;
+        --radius: 12px;
+        --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        font-family:
+          "Segoe UI",
+          system-ui,
+          -apple-system,
+          sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.7;
+        font-size: 16px;
+      }
+
+      /* ── Layout ────────────────────────────────────────── */
+      .page-wrap {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 0 24px 80px;
+      }
+
+      /* ── Hero ──────────────────────────────────────────── */
+      .hero {
+        text-align: center;
+        padding: 100px 24px 60px;
+        background: radial-gradient(
+          ellipse 80% 60% at 50% 0%,
+          rgba(108, 99, 255, 0.18) 0%,
+          transparent 70%
+        );
+      }
+      .hero-icon {
+        font-size: 4rem;
+        display: block;
+        margin-bottom: 20px;
+        filter: drop-shadow(0 0 24px rgba(108, 99, 255, 0.6));
+      }
+      .hero h1 {
+        font-size: clamp(2.2rem, 5vw, 3.6rem);
+        font-weight: 800;
+        letter-spacing: -1.5px;
+        background: linear-gradient(135deg, #fff 30%, var(--accent2));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 12px;
+      }
+      .hero-tagline {
+        font-size: 1.2rem;
+        color: var(--muted);
+        max-width: 600px;
+        margin: 0 auto 40px;
+      }
+      .badge-row {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 0.4px;
+        border: 1px solid;
+      }
+      .badge-purple {
+        background: rgba(108, 99, 255, 0.15);
+        border-color: rgba(108, 99, 255, 0.4);
+        color: var(--accent2);
+      }
+      .badge-green {
+        background: rgba(52, 211, 153, 0.12);
+        border-color: rgba(52, 211, 153, 0.35);
+        color: var(--green);
+      }
+      .badge-sky {
+        background: rgba(56, 189, 248, 0.12);
+        border-color: rgba(56, 189, 248, 0.35);
+        color: var(--sky);
+      }
+      .badge-amber {
+        background: rgba(251, 191, 36, 0.12);
+        border-color: rgba(251, 191, 36, 0.35);
+        color: var(--amber);
+      }
+
+      /* ── Section headings ──────────────────────────────── */
+      section {
+        margin-top: 72px;
+      }
+      .section-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--accent2);
+        margin-bottom: 8px;
+      }
+      h2 {
+        font-size: clamp(1.5rem, 3vw, 2rem);
+        font-weight: 700;
+        letter-spacing: -0.5px;
+        margin-bottom: 24px;
+      }
+      h3 {
+        font-size: 1.05rem;
+        font-weight: 600;
+        margin-bottom: 6px;
+      }
+
+      /* ── Intro ─────────────────────────────────────────── */
+      .intro-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+      @media (max-width: 680px) {
+        .intro-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .intro-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 20px 24px;
+      }
+      .intro-card p {
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      /* ── Data model diagram ────────────────────────────── */
+      .model-diagram {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        justify-content: center;
+        flex-wrap: wrap;
+        row-gap: 12px;
+      }
+      .model-box {
+        background: var(--surface2);
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius);
+        padding: 18px 28px;
+        text-align: center;
+        min-width: 120px;
+      }
+      .model-box .icon {
+        font-size: 2rem;
+        display: block;
+        margin-bottom: 6px;
+      }
+      .model-box .label {
+        font-weight: 700;
+        font-size: 0.95rem;
+      }
+      .model-box .sublabel {
+        font-size: 0.75rem;
+        color: var(--muted);
+        margin-top: 2px;
+      }
+      .model-arrow {
+        color: var(--accent);
+        font-size: 1.8rem;
+        padding: 0 4px;
+        font-weight: 300;
+        line-height: 1;
+      }
+      .model-arrow span {
+        display: block;
+        font-size: 0.6rem;
+        color: var(--muted);
+        text-align: center;
+        margin-top: 2px;
+      }
+
+      /* ── Feature grid ──────────────────────────────────── */
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+      }
+      .feature-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 24px;
+        transition:
+          border-color 0.2s,
+          transform 0.2s;
+      }
+      .feature-card:hover {
+        border-color: var(--accent);
+        transform: translateY(-3px);
+      }
+      .feature-icon {
+        font-size: 2rem;
+        margin-bottom: 12px;
+        display: block;
+      }
+      .feature-card p {
+        font-size: 0.9rem;
+        color: var(--muted);
+        margin-top: 6px;
+      }
+
+      /* ── Use-case pills ────────────────────────────────── */
+      .use-case-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .use-case-pill {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 10px 18px;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition:
+          border-color 0.2s,
+          background 0.2s;
+      }
+      .use-case-pill:hover {
+        border-color: var(--accent2);
+        background: rgba(108, 99, 255, 0.1);
+      }
+      .use-case-pill .pill-icon {
+        font-size: 1.1rem;
+      }
+
+      /* ── Sharing section ───────────────────────────────── */
+      .share-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 16px;
+      }
+      .share-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 20px 22px;
+        border-top: 3px solid;
+      }
+      .share-card.purple {
+        border-top-color: var(--accent);
+      }
+      .share-card.sky {
+        border-top-color: var(--sky);
+      }
+      .share-card.green {
+        border-top-color: var(--green);
+      }
+      .share-card p {
+        font-size: 0.88rem;
+        color: var(--muted);
+        margin-top: 8px;
+      }
+
+      /* ── Tech stack ────────────────────────────────────── */
+      .tech-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 14px;
+      }
+      .tech-chip {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 14px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .tech-chip .tech-layer {
+        font-size: 0.7rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 600;
+      }
+      .tech-chip .tech-name {
+        font-size: 0.95rem;
+        font-weight: 700;
+      }
+
+      /* ── Pages table ───────────────────────────────────── */
+      .pages-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .page-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 14px 18px;
+      }
+      .page-row .page-icon {
+        font-size: 1.5rem;
+        flex-shrink: 0;
+        margin-top: 2px;
+      }
+      .page-row .page-name {
+        font-weight: 700;
+        font-size: 0.95rem;
+      }
+      .page-row .page-desc {
+        font-size: 0.85rem;
+        color: var(--muted);
+        margin-top: 2px;
+      }
+
+      /* ── Special features (Dumpster / Yard Sale) ───────── */
+      .special-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+      @media (max-width: 640px) {
+        .special-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .special-card {
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 28px;
+        position: relative;
+        overflow: hidden;
+      }
+      .special-card.dumpster {
+        background: linear-gradient(135deg, #1a1d27, #1f1525);
+      }
+      .special-card.yardsale {
+        background: linear-gradient(135deg, #1a1d27, #151e25);
+      }
+      .special-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        filter: blur(50px);
+        opacity: 0.25;
+      }
+      .special-card.dumpster::before {
+        background: var(--red);
+        top: -20px;
+        right: -20px;
+      }
+      .special-card.yardsale::before {
+        background: var(--amber);
+        top: -20px;
+        right: -20px;
+      }
+      .special-card h3 {
+        font-size: 1.1rem;
+        margin-bottom: 10px;
+      }
+      .special-card p {
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+      .special-badge {
+        display: inline-block;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        padding: 3px 10px;
+        border-radius: 999px;
+        margin-bottom: 12px;
+      }
+      .dumpster .special-badge {
+        background: rgba(248, 113, 113, 0.15);
+        color: var(--red);
+        border: 1px solid rgba(248, 113, 113, 0.3);
+      }
+      .yardsale .special-badge {
+        background: rgba(251, 191, 36, 0.12);
+        color: var(--amber);
+        border: 1px solid rgba(251, 191, 36, 0.3);
+      }
+      .special-list {
+        list-style: none;
+        margin-top: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .special-list li {
+        font-size: 0.88rem;
+        color: var(--muted);
+        display: flex;
+        gap: 8px;
+      }
+      .special-list li::before {
+        content: "→";
+        color: var(--accent2);
+        flex-shrink: 0;
+      }
+
+      /* ── Getting started ───────────────────────────────── */
+      .steps {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .step {
+        display: flex;
+        gap: 18px;
+        align-items: flex-start;
+      }
+      .step-num {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: rgba(108, 99, 255, 0.2);
+        border: 2px solid var(--accent);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 0.9rem;
+        color: var(--accent2);
+        flex-shrink: 0;
+      }
+      .step-body h3 {
+        font-size: 1rem;
+        margin-bottom: 4px;
+      }
+      .step-body p {
+        font-size: 0.88rem;
+        color: var(--muted);
+      }
+      pre {
+        background: #0d1117;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 14px 18px;
+        font-size: 0.84rem;
+        color: var(--green);
+        overflow-x: auto;
+        margin-top: 8px;
+        font-family: "Cascadia Code", "Fira Code", monospace;
+      }
+
+      /* ── Footer ────────────────────────────────────────── */
+      footer {
+        text-align: center;
+        padding: 48px 24px 32px;
+        color: var(--muted);
+        font-size: 0.85rem;
+        border-top: 1px solid var(--border);
+        margin-top: 80px;
+      }
+      footer strong {
+        color: var(--text);
+      }
+
+      /* ── Divider ───────────────────────────────────────── */
+      hr {
+        border: none;
+        border-top: 1px solid var(--border);
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ═══════════════════════════════════════════ HERO -->
+    <div class="hero">
+      <span class="hero-icon">🏠</span>
+      <h1>GetOrganized</h1>
+      <p class="hero-tagline">
+        A searchable, collaborative inventory system built around the structure
+        of a home — powerful enough for any collection, hobby, or household
+        project.
+      </p>
+      <div class="badge-row">
+        <span class="badge badge-purple">⚡ Real-Time Sync</span>
+        <span class="badge badge-green">🔗 Collaborative Sharing</span>
+        <span class="badge badge-sky">🔍 Fuzzy Search</span>
+        <span class="badge badge-amber">📸 Image Support</span>
+      </div>
+    </div>
+
+    <div class="page-wrap">
+      <!-- ═══════════════════════════════════════════ WHAT IS THIS -->
+      <section>
+        <p class="section-label">Overview</p>
+        <h2>Your entire world, catalogued.</h2>
+        <p style="color: var(--muted); max-width: 700px; margin-bottom: 28px">
+          The core model is beautifully simple: a
+          <strong style="color: var(--text)">Home</strong> contains
+          <strong style="color: var(--text)">Rooms</strong>, and Rooms hold
+          <strong style="color: var(--text)">Items</strong>. That three-level
+          hierarchy is humble on the surface — but it can model almost anything
+          you can imagine.
+        </p>
+
+        <!-- Data model diagram -->
+        <div class="model-diagram" style="margin-bottom: 36px">
+          <div class="model-box">
+            <span class="icon">🏠</span>
+            <div class="label">Home</div>
+            <div class="sublabel">Your workspace</div>
+          </div>
+          <div class="model-arrow">→<span>1 → many</span></div>
+          <div class="model-box">
+            <span class="icon">🚪</span>
+            <div class="label">Room</div>
+            <div class="sublabel">Any space or container</div>
+          </div>
+          <div class="model-arrow">→<span>1 → many</span></div>
+          <div class="model-box">
+            <span class="icon">📦</span>
+            <div class="label">Item</div>
+            <div class="sublabel">Any object or entry</div>
+          </div>
+        </div>
+
+        <div class="intro-grid">
+          <div class="intro-card">
+            <h3>Full CRUD</h3>
+            <p>
+              Create, read, update, and delete Homes, Rooms, and Items. Every
+              operation is protected, validated, and reflected in real time
+              across all connected clients.
+            </p>
+          </div>
+          <div class="intro-card">
+            <h3>Not just for houses</h3>
+            <p>
+              The "room" is just a concept — it could be a tackle box, a shelf,
+              a tote bag, a playlist, or a recipe category. The model is as
+              flexible as your imagination.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════ USE CASES -->
+      <section>
+        <p class="section-label">Use Cases</p>
+        <h2>What can you build with it?</h2>
+        <div class="use-case-grid">
+          <div class="use-case-pill">
+            <span class="pill-icon">🎣</span> Fishing lure collection by lure
+            box
+          </div>
+          <div class="use-case-pill">
+            <span class="pill-icon">🏕️</span> Camping gear across totes &amp;
+            bags
+          </div>
+          <div class="use-case-pill">
+            <span class="pill-icon">💿</span> CD, DVD, or vinyl collection by
+            shelf
+          </div>
+          <div class="use-case-pill">
+            <span class="pill-icon">📚</span> Book library by genre or bookshelf
+          </div>
+          <div class="use-case-pill">
+            <span class="pill-icon">🛒</span> Shared shopping &amp; grocery
+            lists
+          </div>
+          <div class="use-case-pill">
+            <span class="pill-icon">🍽️</span> Recipe ingredient lists by meal
+          </div>
+          <div class="use-case-pill">
+            <span class="pill-icon">🏷️</span> Garage sale / estate inventory
+          </div>
+          <div class="use-case-pill">
+            <span class="pill-icon">🔧</span> Workshop tools by cabinet
+          </div>
+          <div class="use-case-pill">
+            <span class="pill-icon">🎮</span> Video game collection by console
+          </div>
+          <div class="use-case-pill">
+            <span class="pill-icon">🧰</span> Craft supplies by storage bin
+          </div>
+          <div class="use-case-pill">
+            <span class="pill-icon">🏠</span> Household inventory by room
+          </div>
+          <div class="use-case-pill">
+            <span class="pill-icon">🤝</span> Shared storage with roommates
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════ FEATURES -->
+      <section>
+        <p class="section-label">Features</p>
+        <h2>Everything you need to get organized</h2>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <span class="feature-icon">🏷️</span>
+            <h3>Tags &amp; Categories</h3>
+            <p>
+              Assign items to named categories and attach free-form tags. Both
+              are scoped to your Home — filter and cross-reference your
+              inventory any way you like.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <span class="feature-icon">🔍</span>
+            <h3>Fuzzy Search</h3>
+            <p>
+              Search across item names, notes, categories, and tags
+              simultaneously. Results are scored by relevance: exact → prefix →
+              substring → fuzzy. Navigate directly to the item in its room.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <span class="feature-icon">📸</span>
+            <h3>Multiple Images</h3>
+            <p>
+              Attach several photos to any item. Perfect for collectibles, gear
+              identification, or documenting condition. Stored and served by the
+              backend.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <span class="feature-icon">📋</span>
+            <h3>Bulk Insert</h3>
+            <p>
+              Add a whole room's worth of items in one go. Ideal for the initial
+              cataloguing sprint when you're digitizing a physical space or
+              collection.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <span class="feature-icon">⚡</span>
+            <h3>Real-Time Sync</h3>
+            <p>
+              Powered by Socket.io. Changes propagate instantly to all connected
+              tabs and devices — collaborators see additions and updates the
+              moment they happen.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <span class="feature-icon">🔔</span>
+            <h3>Notifications</h3>
+            <p>
+              In-app notification feed for shares, invites, and collaborative
+              changes. Unread badge updates in real time. Notifications
+              auto-expire after 30 days.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <span class="feature-icon">🏘️</span>
+            <h3>Multi-Home Support</h3>
+            <p>
+              Authenticate to multiple Homes from one device. Switch between a
+              personal stash, a family home, a vacation property, or a shared
+              workshop instantly.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <span class="feature-icon">👁️</span>
+            <h3>Shared With Me</h3>
+            <p>
+              A dedicated dashboard showing everything others have shared with
+              you. Switch into a shared Home, browse a shared Room, or inspect a
+              shared Item from one place.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════ SHARING -->
+      <section>
+        <p class="section-label">Collaboration</p>
+        <h2>Three ways to share</h2>
+        <p style="color: var(--muted); margin-bottom: 24px; max-width: 600px">
+          Every share supports an optional
+          <strong style="color: var(--text)">edit permission</strong> —
+          recipients can be viewers or full collaborators, your choice.
+        </p>
+        <div class="share-cards">
+          <div class="share-card purple">
+            <h3>🤝 Direct Share</h3>
+            <p>
+              Share a Home, Room, or individual Item directly with a specific
+              person using their Home token. Appears in their "Shared With Me"
+              feed with real-time push updates when content changes.
+            </p>
+          </div>
+          <div class="share-card sky">
+            <h3>🔗 Share Link</h3>
+            <p>
+              Generate a public URL backed by a secure base64 token. Anyone with
+              the link can view (or edit, if permitted) — no account required.
+              Links can be revoked at any time.
+            </p>
+          </div>
+          <div class="share-card green">
+            <h3>📬 Home Invite</h3>
+            <p>
+              Invite someone to join your Home as a full member. Invite links
+              expire after 7 days. Modes: <em>join</em> (claim the household) or
+              <em>view</em> (guest access).
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════ SPECIAL FEATURES -->
+      <section>
+        <p class="section-label">Clever Touches</p>
+        <h2>Nothing gets lost</h2>
+        <div class="special-grid">
+          <div class="special-card dumpster">
+            <span class="special-badge">Soft Delete</span>
+            <h3>🗑️ The Dumpster</h3>
+            <p>
+              Deleted items and rooms aren't gone — they move to the Dumpster.
+              Review and recover anything at any time.
+            </p>
+            <ul class="special-list">
+              <li>Restore individual items or rooms with one click</li>
+              <li>
+                <strong>Spring Cleaning</strong>: permanently wipe all trash at
+                once
+              </li>
+              <li>Nothing accidentally vanishes forever</li>
+            </ul>
+          </div>
+
+          <div class="special-card yardsale">
+            <span class="special-badge">Orphaned Items</span>
+            <h3>🏷️ The Yard Sale</h3>
+            <p>
+              When a Room is deleted, its items don't disappear — they become
+              orphaned and surface on the Yard Sale page.
+            </p>
+            <ul class="special-list">
+              <li>Relocate items to an active room</li>
+              <li>Or send them to the Dumpster for later cleanup</li>
+              <li>Graceful, thoughtful handling of reorganization</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════ PAGES -->
+      <section>
+        <p class="section-label">UI Pages</p>
+        <h2>Every view you need</h2>
+        <div class="pages-list">
+          <div class="page-row">
+            <div class="page-icon">📊</div>
+            <div>
+              <div class="page-name">Dashboard</div>
+              <div class="page-desc">
+                Room grid with item counts + the 6 most recently added items.
+                Create, edit, or delete rooms from here.
+              </div>
+            </div>
+          </div>
+          <div class="page-row">
+            <div class="page-icon">🚪</div>
+            <div>
+              <div class="page-name">Room Page</div>
+              <div class="page-desc">
+                Browse, add, edit, and delete all items within a specific room.
+                Full item management in one view.
+              </div>
+            </div>
+          </div>
+          <div class="page-row">
+            <div class="page-icon">📦</div>
+            <div>
+              <div class="page-name">Inventory</div>
+              <div class="page-desc">
+                Your complete item list across all rooms, plus the Bulk Insert
+                form for rapid data entry.
+              </div>
+            </div>
+          </div>
+          <div class="page-row">
+            <div class="page-icon">🔍</div>
+            <div>
+              <div class="page-name">Search Results</div>
+              <div class="page-desc">
+                Fuzzy-ranked results across names, notes, categories, and tags.
+                Click any result to navigate directly to the item.
+              </div>
+            </div>
+          </div>
+          <div class="page-row">
+            <div class="page-icon">🏷️</div>
+            <div>
+              <div class="page-name">Yard Sale</div>
+              <div class="page-desc">
+                Orphaned items whose rooms have been deleted. Relocate them or
+                send them to the Dumpster.
+              </div>
+            </div>
+          </div>
+          <div class="page-row">
+            <div class="page-icon">🗑️</div>
+            <div>
+              <div class="page-name">Dumpster</div>
+              <div class="page-desc">
+                Soft-deleted items and rooms. Restore individually or
+                spring-clean everything at once.
+              </div>
+            </div>
+          </div>
+          <div class="page-row">
+            <div class="page-icon">👁️</div>
+            <div>
+              <div class="page-name">Shared With Me</div>
+              <div class="page-desc">
+                All content others have shared with you. Switch context, view
+                details, or remove shares you no longer need.
+              </div>
+            </div>
+          </div>
+          <div class="page-row">
+            <div class="page-icon">🔗</div>
+            <div>
+              <div class="page-name">Shared View</div>
+              <div class="page-desc">
+                Public / guest view of a shared room or item via share link
+                token. No login required.
+              </div>
+            </div>
+          </div>
+          <div class="page-row">
+            <div class="page-icon">🔔</div>
+            <div>
+              <div class="page-name">Notifications</div>
+              <div class="page-desc">
+                In-app notification feed. Real-time unread badge. Auto-expiry
+                after 30 days.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════ TECH STACK -->
+      <section>
+        <p class="section-label">Technology</p>
+        <h2>Built with modern, battle-tested tools</h2>
+        <div class="tech-grid">
+          <div class="tech-chip">
+            <span class="tech-layer">Runtime</span>
+            <span class="tech-name">Node.js</span>
+          </div>
+          <div class="tech-chip">
+            <span class="tech-layer">Framework</span>
+            <span class="tech-name">Express</span>
+          </div>
+          <div class="tech-chip">
+            <span class="tech-layer">Database</span>
+            <span class="tech-name">MongoDB</span>
+          </div>
+          <div class="tech-chip">
+            <span class="tech-layer">Real-Time</span>
+            <span class="tech-name">Socket.io</span>
+          </div>
+          <div class="tech-chip">
+            <span class="tech-layer">Frontend</span>
+            <span class="tech-name">React + Vite</span>
+          </div>
+          <div class="tech-chip">
+            <span class="tech-layer">UI Library</span>
+            <span class="tech-name">Mantine</span>
+          </div>
+          <div class="tech-chip">
+            <span class="tech-layer">Styling</span>
+            <span class="tech-name">Tailwind CSS</span>
+          </div>
+          <div class="tech-chip">
+            <span class="tech-layer">Language</span>
+            <span class="tech-name">TypeScript</span>
+          </div>
+          <div class="tech-chip">
+            <span class="tech-layer">Uploads</span>
+            <span class="tech-name">Multer</span>
+          </div>
+          <div class="tech-chip">
+            <span class="tech-layer">Process</span>
+            <span class="tech-name">PM2</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════ GETTING STARTED -->
+      <section>
+        <p class="section-label">Setup</p>
+        <h2>Get running in minutes</h2>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-body">
+              <h3>Prerequisites</h3>
+              <p>Node.js 18+ and a MongoDB instance (local or Atlas).</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-body">
+              <h3>Install dependencies</h3>
+              <pre>
+cd backend && npm install
+cd ../frontend && npm install</pre
+              >
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-body">
+              <h3>Start with PM2</h3>
+              <pre>
+npm run dev
+# or: pm2 start ecosystem.config.js</pre
+              >
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">4</div>
+            <div class="step-body">
+              <h3>Open the app</h3>
+              <p>
+                The backend API runs on port <strong>5000</strong>. The frontend
+                dev server proxies API calls automatically. Navigate to your
+                frontend URL and your Home is created on first visit.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+    <!-- /page-wrap -->
+
+    <footer>
+      <p>Built with TypeScript, Express, MongoDB, React, and Socket.io.</p>
+      <p style="margin-top: 8px">
+        MIT License &mdash; <strong>GetOrganized</strong>
+      </p>
+    </footer>
+  </body>
+</html>

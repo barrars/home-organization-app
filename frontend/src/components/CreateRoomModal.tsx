@@ -85,6 +85,7 @@ const CreateRoomModal: React.FC<Props> = ({ opened, onClose, onCreated, editRoom
             label="Room Name"
             placeholder="e.g. Bedroom, Kitchen, Garage..."
             required
+            data-autofocus
             {...form.getInputProps('name')}
           />
           <Textarea

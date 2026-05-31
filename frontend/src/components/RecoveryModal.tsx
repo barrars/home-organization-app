@@ -85,6 +85,7 @@ const RecoveryModal: React.FC<Props> = ({ opened, onClose, isNew = false }) => {
                 setNameSaved(false);
               }}
               maxLength={50}
+              data-autofocus
               onKeyDown={(e) => {
                 if (e.key === 'Enter') saveName();
               }}

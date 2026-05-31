@@ -4,6 +4,7 @@ import { Share } from '../models/share.model'
 import { Home } from '../models/home.model'
 import { Room } from '../models/room.model'
 import { Item } from '../models/inventory.model'
+import { ShareLink } from '../models/shareLink.model'
 import logger from '../utils/logger'
 
 class ShareController {
@@ -113,17 +114,30 @@ class ShareController {
       const populated = await Promise.all(
         shares.map(async (share) => {
           let target: unknown = null
+          let shareLinkToken: string | null = null
+
           if (share.targetType === 'home') {
-            target = await Home.findById(share.targetId, 'name').lean()
+            // Include the home token so the frontend can offer a "Switch" action
+            target = await Home.findById(share.targetId, 'name token').lean()
           } else if (share.targetType === 'room') {
             target = await Room.findById(share.targetId, 'name description icon').lean()
+            const link = await ShareLink.findOne(
+              { ownerHomeId: share.ownerHomeId, targetType: 'room', targetId: share.targetId },
+              'token',
+            ).lean()
+            shareLinkToken = link?.token ?? null
           } else if (share.targetType === 'item') {
             target = await Item.findById(
               share.targetId,
               'name quantity roomId notes imageUrl',
             ).lean()
+            const link = await ShareLink.findOne(
+              { ownerHomeId: share.ownerHomeId, targetType: 'item', targetId: share.targetId },
+              'token',
+            ).lean()
+            shareLinkToken = link?.token ?? null
           }
-          return { ...share, target }
+          return { ...share, target, shareLinkToken }
         }),
       )
 
@@ -166,7 +180,7 @@ class ShareController {
       const share = await Share.findOneAndUpdate(
         { _id: id, ownerHomeId: req.homeId },
         { canEdit },
-        { new: true },
+        { returnDocument: 'after' },
       )
 
       if (!share) {

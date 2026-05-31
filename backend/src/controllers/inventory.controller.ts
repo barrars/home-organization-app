@@ -1,8 +1,9 @@
 import { Request, Response } from 'express'
 import { Item } from '../models/inventory.model'
 import { Room } from '../models/room.model'
+import { Home } from '../models/home.model'
 import logger from '../utils/logger'
-import { emitToHome } from '../utils/socket'
+import { emitToHome, notifyShareRecipients } from '../utils/socket'
 
 function fuzzyScore(query: string, target: string): number {
   const q = query.toLowerCase().trim()
@@ -67,7 +68,21 @@ class ItemController {
       const populated = await Item.findById(saved._id)
         .populate('categories', 'name')
         .populate('tags', 'name')
-      emitToHome(req.homeId, 'item:created', { id: saved._id, homeId: req.homeId })
+      const [roomDoc, homeDoc] = await Promise.all([
+        Room.findById(saved.roomId, 'name').lean(),
+        Home.findById(req.homeId, 'name').lean(),
+      ])
+      const roomName = roomDoc?.name ?? ''
+      const homeName = homeDoc?.name ?? ''
+      emitToHome(req.homeId, 'item:created', { id: saved._id, roomId: saved.roomId, homeId: req.homeId, itemName: saved.name, roomName, homeName })
+      notifyShareRecipients(
+        [
+          { targetType: 'item', targetId: saved._id },
+          { targetType: 'room', targetId: saved.roomId },
+        ],
+        'share:item:created',
+        { itemId: saved._id, itemName: saved.name, roomId: saved.roomId, roomName, homeName },
+      )
       res.status(201).json(populated)
     } catch (error) {
       logger.error('Error creating item', { error })
@@ -101,7 +116,25 @@ class ItemController {
       )
         .populate('categories', 'name')
         .populate('tags', 'name')
-      emitToHome(req.homeId, 'item:updated', { id: req.params.id, homeId: req.homeId })
+      if (item) {
+        const [roomDoc, homeDoc] = await Promise.all([
+          Room.findById(item.roomId, 'name').lean(),
+          Home.findById(req.homeId, 'name').lean(),
+        ])
+        const roomName = roomDoc?.name ?? ''
+        const homeName = homeDoc?.name ?? ''
+        emitToHome(req.homeId, 'item:updated', { id: item._id, roomId: item.roomId, homeId: req.homeId, itemName: item.name, roomName, homeName })
+        notifyShareRecipients(
+          [
+            { targetType: 'item', targetId: item._id },
+            { targetType: 'room', targetId: item.roomId },
+          ],
+          'share:item:updated',
+          { itemId: item._id, itemName: item.name, roomId: item.roomId, roomName, homeName },
+        )
+      } else {
+        emitToHome(req.homeId, 'item:updated', { id: req.params.id, homeId: req.homeId })
+      }
       res.json(item)
     } catch (error) {
       logger.error('Error updating item', { id: req.params.id, error })
@@ -111,11 +144,30 @@ class ItemController {
 
   async remove(req: Request, res: Response): Promise<void> {
     try {
-      await Item.findOneAndUpdate(
+      const item = await Item.findOneAndUpdate(
         { _id: req.params.id, homeId: req.homeId },
         { deletedAt: new Date() },
+        { returnDocument: 'after' },
       )
-      emitToHome(req.homeId, 'item:deleted', { id: req.params.id, homeId: req.homeId })
+      if (item) {
+        const [roomDoc, homeDoc] = await Promise.all([
+          Room.findById(item.roomId, 'name').lean(),
+          Home.findById(req.homeId, 'name').lean(),
+        ])
+        const roomName = roomDoc?.name ?? ''
+        const homeName = homeDoc?.name ?? ''
+        emitToHome(req.homeId, 'item:deleted', { id: item._id, roomId: item.roomId, homeId: req.homeId, itemName: item.name, roomName, homeName })
+        notifyShareRecipients(
+          [
+            { targetType: 'item', targetId: item._id },
+            { targetType: 'room', targetId: item.roomId },
+          ],
+          'share:item:deleted',
+          { itemId: item._id, itemName: item.name, roomId: item.roomId, roomName, homeName },
+        )
+      } else {
+        emitToHome(req.homeId, 'item:deleted', { id: req.params.id, homeId: req.homeId })
+      }
       res.json({ message: 'Item moved to dumpster' })
     } catch (error) {
       logger.error('Error deleting item', { id: req.params.id, error })

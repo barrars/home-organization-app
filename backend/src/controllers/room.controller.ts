@@ -1,7 +1,8 @@
 import { Request, Response } from 'express'
 import { Room } from '../models/room.model'
+import { Home } from '../models/home.model'
 import logger from '../utils/logger'
-import { emitToHome } from '../utils/socket'
+import { emitToHome, notifyShareRecipients } from '../utils/socket'
 
 class RoomController {
   async getAll(req: Request, res: Response): Promise<void> {
@@ -18,7 +19,9 @@ class RoomController {
     try {
       const room = new Room({ ...req.body, homeId: req.homeId })
       const saved = await room.save()
-      emitToHome(req.homeId, 'room:created', { id: saved._id, homeId: req.homeId })
+      const homeDoc = await Home.findById(req.homeId, 'name').lean()
+      const homeName = homeDoc?.name ?? ''
+      emitToHome(req.homeId, 'room:created', { id: saved._id, homeId: req.homeId, roomName: saved.name, homeName })
       res.status(201).json(saved)
     } catch (error) {
       logger.error('Error creating room', { error })
@@ -32,13 +35,20 @@ class RoomController {
       const updated = await Room.findOneAndUpdate(
         { _id: req.params.id, homeId: req.homeId },
         { name, description, icon },
-        { new: true, runValidators: true },
+        { returnDocument: 'after', runValidators: true },
       )
       if (!updated) {
         res.status(404).json({ message: 'Room not found' })
         return
       }
-      emitToHome(req.homeId, 'room:updated', { id: updated._id, homeId: req.homeId })
+      const homeDoc = await Home.findById(req.homeId, 'name').lean()
+      const homeName = homeDoc?.name ?? ''
+      emitToHome(req.homeId, 'room:updated', { id: updated._id, homeId: req.homeId, roomName: updated.name, homeName })
+      notifyShareRecipients(
+        [{ targetType: 'room', targetId: updated._id }],
+        'share:room:updated',
+        { roomId: updated._id, roomName: updated.name, homeName },
+      )
       res.json(updated)
     } catch (error) {
       logger.error('Error updating room', { id: req.params.id, error })
@@ -48,11 +58,18 @@ class RoomController {
 
   async remove(req: Request, res: Response): Promise<void> {
     try {
-      await Room.findOneAndUpdate(
+      const removed = await Room.findOneAndUpdate(
         { _id: req.params.id, homeId: req.homeId },
         { deletedAt: new Date() },
+        { returnDocument: 'after' },
       )
-      emitToHome(req.homeId, 'room:deleted', { id: req.params.id, homeId: req.homeId })
+      if (removed) {
+        const homeDoc = await Home.findById(req.homeId, 'name').lean()
+        const homeName = homeDoc?.name ?? ''
+        emitToHome(req.homeId, 'room:deleted', { id: removed._id, homeId: req.homeId, roomName: removed.name, homeName })
+      } else {
+        emitToHome(req.homeId, 'room:deleted', { id: req.params.id, homeId: req.homeId })
+      }
       res.json({ message: 'Room moved to dumpster' })
     } catch (error) {
       logger.error('Error deleting room', { id: req.params.id, error })

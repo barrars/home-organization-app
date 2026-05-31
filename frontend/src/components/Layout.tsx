@@ -28,19 +28,20 @@ import {
   IconCheck,
   IconUsers,
   IconBell,
+  IconPackage,
 } from '@tabler/icons-react';
 import { useRooms } from '../contexts/RoomsContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotifications } from '../contexts/NotificationsContext';
 import SearchBar from './SearchBar';
 import RecoveryModal from './RecoveryModal';
+import HomeInviteModal from './HomeInviteModal';
 
 const Layout: React.FC = () => {
   const [opened, { toggle, close }] = useDisclosure();
   const { rooms, loading, itemCounts, dumpsterCount, yardSaleCount } = useRooms();
   const {
     recoveryModalOpen,
-    openRecoveryModal,
     closeRecoveryModal,
     isNew,
     homeName,
@@ -56,6 +57,7 @@ const Layout: React.FC = () => {
 
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [nameInput, setNameInput] = useState('');
+  const [inviteOpen, setInviteOpen] = useState(false);
 
   const openSettings = () => {
     setNameInput(homeName);
@@ -89,7 +91,7 @@ const Layout: React.FC = () => {
                 size="md"
                 onClick={() => navigate('/notifications')}
                 aria-label="Notifications"
-                style={{ position: 'relative' }}
+                style={{ position: 'relative', overflow: 'visible' }}
               >
                 <IconBell size={16} />
                 {unreadCount > 0 && (
@@ -104,8 +106,13 @@ const Layout: React.FC = () => {
                 )}
               </ActionIcon>
             </Tooltip>
-            <Tooltip label="Share this household" withArrow position="bottom">
-              <ActionIcon variant="light" size="md" onClick={openRecoveryModal} aria-label="Share">
+            <Tooltip label="Invite to this household" withArrow position="bottom">
+              <ActionIcon
+                variant="light"
+                size="md"
+                onClick={() => setInviteOpen(true)}
+                aria-label="Invite"
+              >
                 <IconShare size={16} />
               </ActionIcon>
             </Tooltip>
@@ -113,6 +120,11 @@ const Layout: React.FC = () => {
         </Group>
       </AppShell.Header>
       <RecoveryModal opened={recoveryModalOpen} onClose={closeRecoveryModal} isNew={isNew} />
+      <HomeInviteModal
+        opened={inviteOpen}
+        onClose={() => setInviteOpen(false)}
+        homeName={homeName}
+      />
 
       {opened && (
         <div
@@ -195,6 +207,15 @@ const Layout: React.FC = () => {
           />
           <NavLink
             component={Link}
+            to="/inventory"
+            label="Inventory"
+            leftSection={<IconPackage size={16} />}
+            active={location.pathname === '/inventory'}
+            onClick={close}
+            mb="xs"
+          />
+          <NavLink
+            component={Link}
             to="/shared-with-me"
             label="Shared with Me"
             leftSection={<IconUsers size={16} />}
@@ -265,7 +286,7 @@ const Layout: React.FC = () => {
           onKeyDown={(e) => {
             if (e.key === 'Enter') saveSettings();
           }}
-          autoFocus
+          data-autofocus
         />
         <Group justify="flex-end" mt="md">
           <ActionIcon
@@ -316,11 +337,17 @@ const Layout: React.FC = () => {
                     {h.name}
                   </Text>
                   {isActive ? (
-                    <IconCheck
-                      size={16}
-                      color="var(--mantine-color-blue-6)"
-                      style={{ flexShrink: 0 }}
-                    />
+                    <Group gap={4} wrap="nowrap" style={{ flexShrink: 0 }}>
+                      <Badge
+                        size="xs"
+                        color="teal"
+                        variant="filled"
+                        style={{ textTransform: 'none', fontWeight: 500 }}
+                      >
+                        Primary
+                      </Badge>
+                      <IconCheck size={16} color="var(--mantine-color-blue-6)" />
+                    </Group>
                   ) : (
                     <ActionIcon
                       size="sm"

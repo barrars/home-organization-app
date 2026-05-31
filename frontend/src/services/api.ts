@@ -8,7 +8,12 @@ import type {
   SearchResultItem,
   YardSaleItem,
   Share,
+  ShareLink,
+  ResolvedShareLink,
   Notification,
+  ResolvedHomeInvite,
+  HomeInviteClaim,
+  HomeInviteMode,
 } from '../types';
 
 const api = axios.create({ baseURL: '/api', withCredentials: true });
@@ -128,6 +133,24 @@ export const updateShare = (id: string, canEdit: boolean) =>
   api.patch<Share>(`/shares/${id}`, { canEdit }).then((r) => r.data);
 export const removeShare = (id: string) => api.delete(`/shares/${id}`);
 
+// Share Links
+export const createShareLink = (data: {
+  targetType: 'room' | 'item';
+  targetId: string;
+  canEdit?: boolean;
+}) => api.post<ShareLink>('/share-links', data).then((r) => r.data);
+export const getMyShareLinks = () =>
+  api.get<ShareLink[]>('/share-links').then((r) => r.data);
+export const updateShareLink = (id: string, data: { canEdit?: boolean; active?: boolean }) =>
+  api.patch<ShareLink>(`/share-links/${id}`, data).then((r) => r.data);
+export const removeShareLink = (id: string) => api.delete(`/share-links/${id}`);
+// Public — no auth cookie needed
+export const resolveShareLink = (token: string) =>
+  axios.get<ResolvedShareLink>(`/api/public/share/${token}`).then((r) => r.data);
+// Register a visit so the link appears in Shared With Me (auth required)
+export const visitShareLink = (token: string) =>
+  api.post(`/share-links/${token}/visit`).catch(() => { /* non-critical */ });
+
 // Notifications
 export const getNotifications = (params?: { unreadOnly?: boolean; limit?: number }) =>
   api
@@ -145,3 +168,11 @@ export const markNotificationRead = (id: string) =>
 export const markAllNotificationsRead = () =>
   api.post('/notifications/mark-all-read').then((r) => r.data);
 export const deleteNotification = (id: string) => api.delete(`/notifications/${id}`);
+
+// Home Invites
+export const createHomeInvite = (mode: HomeInviteMode) =>
+  api.post<{ token: string }>('/home-invites', { mode }).then((r) => r.data);
+export const resolveHomeInvite = (token: string) =>
+  axios.get<ResolvedHomeInvite>(`/api/public/invite/${token}`).then((r) => r.data);
+export const claimHomeInvite = (token: string) =>
+  axios.post<HomeInviteClaim>(`/api/public/invite/${token}/claim`).then((r) => r.data);

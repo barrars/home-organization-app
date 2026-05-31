@@ -32,12 +32,14 @@ import {
   IconEdit,
   IconCopy,
   IconArrowRight,
+  IconShare,
 } from '@tabler/icons-react';
 import { getItems, deleteItem, uploadImage, updateItem } from '../services/api';
 import { getSocket } from '../services/socket';
 import { useRooms } from '../contexts/RoomsContext';
 import AddItemModal from '../components/AddItemModal';
 import CreateRoomModal from '../components/CreateRoomModal';
+import ShareLinkModal from '../components/ShareLinkModal';
 import type { Item } from '../types';
 import { RoomIcon } from '../utils/roomIcons';
 
@@ -65,6 +67,7 @@ const RoomPage: React.FC = () => {
   const [moveTargetRoomId, setMoveTargetRoomId] = useState<string | null>(null);
   const [newItemIds, setNewItemIds] = useState<Set<string>>(new Set());
   const [createRoomOpen, setCreateRoomOpen] = useState(false);
+  const [shareLinkTarget, setShareLinkTarget] = useState<{ type: 'room' | 'item'; id: string; name: string } | null>(null);
 
   // Always-current ref so backgroundRefresh can diff without a stale closure
   const itemsRef = useRef<Item[]>([]);
@@ -379,6 +382,19 @@ const RoomPage: React.FC = () => {
         <Button leftSection={<IconPlus size={16} />} onClick={() => setAddModalOpen(true)}>
           Add Item
         </Button>
+        <Tooltip label="Share this room" withArrow position="top">
+          <ActionIcon
+            variant="light"
+            color="teal"
+            size="md"
+            onClick={() =>
+              room && setShareLinkTarget({ type: 'room', id: room._id, name: room.name })
+            }
+            aria-label="Share room"
+          >
+            <IconShare size={16} />
+          </ActionIcon>
+        </Tooltip>
       </Group>
 
       {!loading && items.length > 0 && (
@@ -596,6 +612,18 @@ const RoomPage: React.FC = () => {
                       <IconCopy size={14} />
                     </ActionIcon>
                   </Tooltip>
+                  <Tooltip label="Share item">
+                    <ActionIcon
+                      color="grape"
+                      variant="subtle"
+                      size="sm"
+                      onClick={() =>
+                        setShareLinkTarget({ type: 'item', id: item._id, name: item.name })
+                      }
+                    >
+                      <IconShare size={14} />
+                    </ActionIcon>
+                  </Tooltip>
                   <Tooltip label="Move to another room">
                     <ActionIcon
                       color="indigo"
@@ -737,6 +765,16 @@ const RoomPage: React.FC = () => {
             setEditItem(null);
             setTemplateItem(null);
           }}
+        />
+      )}
+
+      {shareLinkTarget && (
+        <ShareLinkModal
+          opened={!!shareLinkTarget}
+          onClose={() => setShareLinkTarget(null)}
+          targetType={shareLinkTarget.type}
+          targetId={shareLinkTarget.id}
+          targetName={shareLinkTarget.name}
         />
       )}
     </>

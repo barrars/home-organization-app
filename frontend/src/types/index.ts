@@ -61,6 +61,31 @@ export interface Share {
   createdAt: string;
   updatedAt: string;
   target?: Record<string, unknown> | null;
+  /** Token of the corresponding ShareLink — present for room/item shares */
+  shareLinkToken?: string | null;
+}
+
+/** Share link target types (rooms and items only — not whole home) */
+export type ShareLinkTargetType = 'room' | 'item';
+
+/** A shareable link record */
+export interface ShareLink {
+  _id: string;
+  ownerHomeId: string;
+  targetType: ShareLinkTargetType;
+  targetId: string;
+  token: string;
+  canEdit: boolean;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Resolved share link payload returned by the public endpoint */
+export interface ResolvedShareLink {
+  targetType: ShareLinkTargetType;
+  canEdit: boolean;
+  target: (Room & { items: Item[] }) | Item;
 }
 
 /** A notification record */
@@ -72,4 +97,22 @@ export interface Notification {
   read: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+/** Invite mode */
+export type HomeInviteMode = 'view' | 'join';
+
+/** Resolved invite metadata returned by public endpoint */
+export interface ResolvedHomeInvite {
+  mode: HomeInviteMode;
+  homeName: string;
+  expiresAt: string;
+}
+
+/** Claim response */
+export interface HomeInviteClaim {
+  mode: HomeInviteMode;
+  homeName: string;
+  /** Only present when mode === 'join' */
+  homeToken?: string;
 }

@@ -11,7 +11,8 @@ import {
   Button,
   Badge,
 } from '@mantine/core';
-import { IconCheck, IconTrash } from '@tabler/icons-react';
+import { IconCheck, IconTrash, IconArrowRight } from '@tabler/icons-react';
+import { useNavigate } from 'react-router-dom';
 import {
   getNotifications,
   markNotificationRead,
@@ -21,24 +22,69 @@ import {
 import { useNotifications } from '../contexts/NotificationsContext';
 import type { Notification } from '../types';
 
-const eventLabels: Record<string, string> = {
-  'item:created': 'A new item was added',
-  'item:updated': 'An item was updated',
-  'item:deleted': 'An item was trashed',
-  'item:restored': 'An item was restored',
-  'item:destroyed': 'An item was permanently deleted',
-  'room:created': 'A new room was created',
-  'room:updated': 'A room was updated',
-  'room:deleted': 'A room was trashed',
-  'room:restored': 'A room was restored',
-  'room:destroyed': 'A room was permanently deleted',
-  'dumpster:wiped': 'The trash was emptied',
-};
+function getLabel(notification: Notification): string {
+  const d = (notification.data ?? {}) as Record<string, string>;
+  const itemName = d.itemName;
+  const roomName = d.roomName;
+  const homeName = d.homeName;
+
+  const item = itemName ? `"${itemName}"` : 'An item';
+  const room = roomName ? `"${roomName}"` : 'a room';
+  const inRoom = roomName ? ` in ${room}` : '';
+  const inHome = homeName ? ` · ${homeName}` : '';
+
+  switch (notification.event) {
+    case 'item:created':       return `${item} added${inRoom}${inHome}`;
+    case 'item:updated':       return `${item} updated${inRoom}${inHome}`;
+    case 'item:deleted':       return `${item} trashed${inRoom}${inHome}`;
+    case 'item:restored':      return `${item} restored${inRoom}${inHome}`;
+    case 'item:destroyed':     return `${item} permanently deleted`;
+    case 'room:created':       return `Room ${room} created${inHome}`;
+    case 'room:updated':       return `Room ${room} updated${inHome}`;
+    case 'room:deleted':       return `Room ${room} trashed${inHome}`;
+    case 'room:restored':      return `Room ${room} restored${inHome}`;
+    case 'room:destroyed':     return `Room ${room} permanently deleted`;
+    case 'share:item:created': return `${item} added to ${room}${inHome}`;
+    case 'share:item:updated': return `${item} updated in ${room}${inHome}`;
+    case 'share:item:deleted': return `${item} removed from ${room}${inHome}`;
+    case 'share:room:updated': return `Room ${room} updated${inHome}`;
+    case 'dumpster:wiped':     return 'The trash was emptied';
+    default:                   return notification.event;
+  }
+}
+
+function getDestination(notification: Notification): string | null {
+  const d = (notification.data ?? {}) as Record<string, string>;
+  const event = notification.event;
+
+  // Share notifications: use the share link token if available
+  if (event.startsWith('share:')) {
+    if (d.shareLinkToken) return `/share/${d.shareLinkToken}`;
+    return '/shared-with-me';
+  }
+
+  // Own room notifications
+  if (event.startsWith('room:')) {
+    const roomId = d.id;
+    if (roomId) return `/rooms/${roomId}`;
+    return null;
+  }
+
+  // Own item notifications — link to the room
+  if (event.startsWith('item:')) {
+    const roomId = d.roomId;
+    if (roomId) return `/rooms/${roomId}`;
+    return null;
+  }
+
+  return null;
+}
 
 const Notifications: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const { refreshCount } = useNotifications();
+  const navigate = useNavigate();
 
   useEffect(() => {
     getNotifications({ limit: 100 })
@@ -106,7 +152,7 @@ const Notifications: React.FC = () => {
                 <div style={{ flex: 1 }}>
                   <Group gap="xs" mb={2}>
                     <Text size="sm" fw={notification.read ? 400 : 600}>
-                      {eventLabels[notification.event] ?? notification.event}
+                      {getLabel(notification)}
                     </Text>
                     {!notification.read && (
                       <Badge size="xs" color="blue">
@@ -130,6 +176,20 @@ const Notifications: React.FC = () => {
                       <IconCheck size={14} />
                     </ActionIcon>
                   )}
+                  {(() => {
+                    const dest = getDestination(notification);
+                    return dest ? (
+                      <ActionIcon
+                        variant="subtle"
+                        color="gray"
+                        size="sm"
+                        onClick={() => navigate(dest)}
+                        aria-label="Go to origin"
+                      >
+                        <IconArrowRight size={14} />
+                      </ActionIcon>
+                    ) : null;
+                  })()}
                   <ActionIcon
                     variant="subtle"
                     color="red"

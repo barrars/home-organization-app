@@ -1,86 +1,215 @@
-import React, { useEffect, useState } from 'react';
-import { fetchInventoryItems } from '../services/api';
-import type { Item } from '../types';
+import React, { useCallback, useEffect, useState } from 'react';
+import {
+  ActionIcon,
+  Badge,
+  Card,
+  Center,
+  Group,
+  Loader,
+  Select,
+  SimpleGrid,
+  Stack,
+  Text,
+  Tooltip,
+} from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { IconCopy, IconEdit, IconPackage, IconTrash } from '@tabler/icons-react';
+import { deleteItem, getItems } from '../services/api';
+import { useRooms } from '../contexts/RoomsContext';
 import AddItemModal from './AddItemModal';
+import type { Item } from '../types';
 
-const InventoryList: React.FC = () => {
-  const [inventoryItems, setInventoryItems] = useState<Item[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [addModalOpen, setAddModalOpen] = useState(false);
+interface Props {
+  /** Bump this number to trigger a list refresh from the parent */
+  refresh?: number;
+}
+
+const InventoryList: React.FC<Props> = ({ refresh }) => {
+  const { rooms } = useRooms();
+  const [items, setItems] = useState<Item[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filterRoomId, setFilterRoomId] = useState<string | null>(null);
+  const [editItem, setEditItem] = useState<Item | null>(null);
   const [templateItem, setTemplateItem] = useState<Item | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
 
-  const loadInventoryItems = async () => {
+  const load = useCallback(async () => {
+    setLoading(true);
     try {
-      const items = await fetchInventoryItems();
-      setInventoryItems(items);
-    } catch {
-      setError('Failed to fetch inventory items');
+      const data = await getItems();
+      setItems(data);
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    loadInventoryItems();
   }, []);
 
-  const handleDuplicate = (item: Item) => {
+  useEffect(() => {
+    load();
+  }, [load, refresh]);
+
+  const handleDelete = async (item: Item) => {
+    try {
+      await deleteItem(item._id);
+      setItems((prev) => prev.filter((i) => i._id !== item._id));
+      notifications.show({
+        title: 'Moved to Dumpster',
+        message: `"${item.name}" can be recovered from the Dumpster.`,
+        color: 'orange',
+      });
+    } catch {
+      notifications.show({ title: 'Error', message: 'Could not delete item.', color: 'red' });
+    }
+  };
+
+  const openEdit = (item: Item) => {
+    setEditItem(item);
+    setTemplateItem(null);
+    setModalOpen(true);
+  };
+
+  const openDuplicate = (item: Item) => {
     setTemplateItem(item);
-    setAddModalOpen(true);
+    setEditItem(null);
+    setModalOpen(true);
   };
 
   const closeModal = () => {
-    setAddModalOpen(false);
+    setModalOpen(false);
+    setEditItem(null);
     setTemplateItem(null);
   };
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+  const roomName = (id: string) => rooms.find((r) => r._id === id)?.name ?? '—';
 
-  if (error) {
-    return <div>{error}</div>;
+  const displayed = filterRoomId ? items.filter((i) => i.roomId === filterRoomId) : items;
+
+  if (loading) {
+    return (
+      <Center py="xl">
+        <Loader />
+      </Center>
+    );
   }
 
   return (
-    <div>
-      <h2 className="text-xl font-bold">Inventory List</h2>
-      <ul className="mt-4">
-        {inventoryItems.map((item) => (
-          <li key={item._id} className="border-b py-2 flex items-start justify-between gap-4">
-            <div>
-              <h3 className="font-semibold">{item.name}</h3>
-              <p>Quantity: {item.quantity}</p>
-              <p>
-                Category:{' '}
-                {item.categories?.map((c) => (typeof c === 'string' ? c : c.name)).join(', ')}
-              </p>
-              <p>Tags: {item.tags.join(', ')}</p>
-              <p>Notes: {item.notes}</p>
-            </div>
-            <button
-              className="shrink-0 mt-1 text-sm text-blue-500 hover:text-blue-700"
-              onClick={() => handleDuplicate(item)}
-            >
-              Duplicate
-            </button>
-          </li>
+    <Stack gap="md">
+      <Group justify="space-between" wrap="wrap">
+        <Text size="sm" c="dimmed">
+          {displayed.length} item{displayed.length !== 1 ? 's' : ''}
+          {filterRoomId ? '' : ' across all rooms'}
+        </Text>
+        <Select
+          placeholder="Filter by room"
+          clearable
+          data={rooms.map((r) => ({ value: r._id, label: r.name }))}
+          value={filterRoomId}
+          onChange={setFilterRoomId}
+          w={200}
+          size="xs"
+        />
+      </Group>
+
+      {displayed.length === 0 && (
+        <Center py="xl">
+          <Stack align="center" gap="xs">
+            <IconPackage size={40} opacity={0.3} />
+            <Text c="dimmed" size="sm">
+              {filterRoomId
+                ? 'No items in this room.'
+                : 'No items yet — use Bulk Add to get started.'}
+            </Text>
+          </Stack>
+        </Center>
+      )}
+
+      <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="sm">
+        {displayed.map((item) => (
+          <Card
+            key={item._id}
+            withBorder
+            radius="md"
+            p="sm"
+            style={{ display: 'flex', flexDirection: 'column' }}
+          >
+            <Group justify="space-between" mb={4} wrap="nowrap">
+              <Text fw={600} size="sm" lineClamp={1} style={{ flex: 1 }}>
+                {item.name}
+              </Text>
+              <Badge size="xs" variant="light" color="blue" ml={4}>
+                {item.quantity}×
+              </Badge>
+            </Group>
+
+            <Text size="xs" c="dimmed" mb={6}>
+              {roomName(item.roomId)}
+            </Text>
+
+            {item.categories.length > 0 && (
+              <Group gap={4} mb={4} wrap="wrap">
+                {item.categories.map((c) => (
+                  <Badge key={c._id} size="xs" variant="outline">
+                    {c.name}
+                  </Badge>
+                ))}
+              </Group>
+            )}
+
+            {item.tags.length > 0 && (
+              <Group gap={4} mb={4} wrap="wrap">
+                {item.tags.map((t) => (
+                  <Badge key={t._id} size="xs" color="grape" variant="dot">
+                    {t.name}
+                  </Badge>
+                ))}
+              </Group>
+            )}
+
+            {item.notes && (
+              <Text size="xs" c="dimmed" lineClamp={2} mb={6}>
+                {item.notes}
+              </Text>
+            )}
+
+            <Group gap={4} justify="flex-end" mt="auto">
+              <Tooltip label="Duplicate" withArrow>
+                <ActionIcon size="sm" variant="subtle" onClick={() => openDuplicate(item)}>
+                  <IconCopy size={14} />
+                </ActionIcon>
+              </Tooltip>
+              <Tooltip label="Edit" withArrow>
+                <ActionIcon size="sm" variant="subtle" onClick={() => openEdit(item)}>
+                  <IconEdit size={14} />
+                </ActionIcon>
+              </Tooltip>
+              <Tooltip label="Move to Dumpster" withArrow>
+                <ActionIcon
+                  size="sm"
+                  variant="subtle"
+                  color="red"
+                  onClick={() => handleDelete(item)}
+                >
+                  <IconTrash size={14} />
+                </ActionIcon>
+              </Tooltip>
+            </Group>
+          </Card>
         ))}
-      </ul>
-      {templateItem && (
+      </SimpleGrid>
+
+      {(editItem || templateItem) && (
         <AddItemModal
-          opened={addModalOpen}
+          opened={modalOpen}
           onClose={closeModal}
-          roomId={templateItem.roomId}
+          roomId={(editItem ?? templateItem)!.roomId}
+          editItem={editItem ?? undefined}
+          template={templateItem ?? undefined}
           onCreated={() => {
             closeModal();
-            loadInventoryItems();
+            load();
           }}
-          template={templateItem}
         />
       )}
-    </div>
+    </Stack>
   );
 };
 
