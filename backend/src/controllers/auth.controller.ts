@@ -2,6 +2,7 @@ import { Request, Response } from 'express'
 import crypto from 'crypto'
 import { Home } from '../models/home.model'
 import logger from '../utils/logger'
+import { emitToHome } from '../utils/socket'
 
 const COOKIE_NAME = 'home_token'
 const TEN_YEARS_MS = 10 * 365 * 24 * 60 * 60 * 1000
@@ -140,6 +141,7 @@ class AuthController {
         return
       }
       await req.home.updateOne({ name: trimmed })
+      emitToHome(req.home._id, 'home:renamed', { name: trimmed })
       res.json({ name: trimmed })
     } catch (error) {
       logger.error('Error updating home', { error })

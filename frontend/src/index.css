@@ -2,6 +2,20 @@
   user-select: none;
 }
 
+/* ── Mobile font scale ─────────────────────────────────────────── */
+/* Mantine's sm breakpoint is 48em (768px). Override heading and   */
+/* large-text CSS variables so every page shrinks automatically.   */
+@media (max-width: 47.9375em) {
+  :root {
+    --mantine-h1-font-size: 1.625rem;   /* default 2.125rem */
+    --mantine-h2-font-size: 1.25rem;    /* default 1.625rem (26 → 20px) */
+    --mantine-h3-font-size: 1.0625rem;  /* default 1.375rem (22 → 17px) */
+    --mantine-h4-font-size: 1rem;       /* default 1.125rem */
+    --mantine-font-size-xl: 1rem;       /* default 1.25rem  */
+    --mantine-font-size-lg: 0.9375rem;  /* default 1.125rem (18 → 15px) */
+  }
+}
+
 @keyframes itemFadeIn {
   from { opacity: 0; transform: translateY(-8px) scale(0.97); }
   to   { opacity: 1; transform: translateY(0)   scale(1); }

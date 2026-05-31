@@ -3,9 +3,11 @@ import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   AppShell,
   ActionIcon,
+  Box,
   Burger,
   Group,
   NavLink,
+  Stack,
   Text,
   ScrollArea,
   Divider,
@@ -71,18 +73,66 @@ const Layout: React.FC = () => {
 
   return (
     <AppShell
-      header={{ height: 60 }}
+      header={{ height: { base: 100, sm: 60 } }}
       navbar={{ width: 240, breakpoint: 'sm', collapsed: { mobile: !opened } }}
       padding="md"
     >
       <AppShell.Header>
-        <Group h="100%" px="md" justify="space-between" wrap="nowrap">
-          <Group>
-            <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
+        {/* ── Mobile: two rows ─────────────────────────── */}
+        <Stack gap={0} hiddenFrom="sm" px="md" pt={8} pb={6}>
+          {/* Row 1: home name + notification + share */}
+          <Group justify="space-between" wrap="nowrap" mb={6}>
             <Title order={4} c="blue.7" style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
               🏠 {homeName}
             </Title>
+            <Group gap="xs" wrap="nowrap">
+              <Tooltip label="Notifications" withArrow position="bottom">
+                <ActionIcon
+                  variant="light"
+                  size="md"
+                  onClick={() => navigate('/notifications')}
+                  aria-label="Notifications"
+                  style={{ position: 'relative', overflow: 'visible' }}
+                >
+                  <IconBell size={16} />
+                  {unreadCount > 0 && (
+                    <Badge
+                      size="xs"
+                      color="red"
+                      circle
+                      style={{ position: 'absolute', top: -4, right: -4 }}
+                    >
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </Badge>
+                  )}
+                </ActionIcon>
+              </Tooltip>
+              <Tooltip label="Invite to this household" withArrow position="bottom">
+                <ActionIcon
+                  variant="light"
+                  size="md"
+                  onClick={() => setInviteOpen(true)}
+                  aria-label="Invite"
+                >
+                  <IconShare size={16} />
+                </ActionIcon>
+              </Tooltip>
+            </Group>
           </Group>
+          {/* Row 2: hamburger + search */}
+          <Group wrap="nowrap" gap="xs" style={{ width: '100%' }}>
+            <Burger opened={opened} onClick={toggle} size="sm" style={{ flexShrink: 0 }} />
+            <Box style={{ flex: 1, minWidth: 0 }}>
+              <SearchBar />
+            </Box>
+          </Group>
+        </Stack>
+
+        {/* ── Desktop: single row ──────────────────────── */}
+        <Group h="100%" px="md" justify="space-between" wrap="nowrap" visibleFrom="sm">
+          <Title order={4} c="blue.7" style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
+            🏠 {homeName}
+          </Title>
           <Group gap="xs">
             <SearchBar />
             <Tooltip label="Notifications" withArrow position="bottom">

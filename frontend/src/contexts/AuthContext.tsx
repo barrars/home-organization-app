@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { LoadingOverlay } from '@mantine/core';
 import { initAuth, updateHomeName, switchHome as switchHomeApi } from '../services/api';
+import { getSocket } from '../services/socket';
 
 const ACTIVE_ID_KEY = 'home_organizer_active_id';
 
@@ -94,6 +95,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const activeId = localStorage.getItem(ACTIVE_ID_KEY) ?? '';
     setHomes(upsertStoredHome(activeId, token, saved));
   };
+
+  // Listen for home:renamed events from other clients in the same household
+  useEffect(() => {
+    if (!token) return;
+    const socket = getSocket();
+    const handler = ({ name }: { name: string }) => {
+      setHomeNameState(name);
+      const activeId = localStorage.getItem(ACTIVE_ID_KEY) ?? '';
+      setHomes((prev) => {
+        const updated = prev.map((h) =>
+          h.id === activeId ? { ...h, name } : h,
+        );
+        localStorage.setItem('home_organizer_homes', JSON.stringify(updated));
+        return updated;
+      });
+    };
+    socket.on('home:renamed', handler);
+    return () => { socket.off('home:renamed', handler); };
+  }, [token]);
 
   const switchHome = async (targetToken: string) => {
     const result = await switchHomeApi(targetToken);
