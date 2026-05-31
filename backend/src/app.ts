@@ -15,6 +15,8 @@ import itemRouter from './routes/inventory.routes'
 import uploadRouter from './routes/upload.routes'
 import dumpsterRouter from './routes/dumpster.routes'
 import authRouter from './routes/auth.routes'
+import shareRouter from './routes/share.routes'
+import notificationRouter from './routes/notification.routes'
 import { authMiddleware } from './middleware/authMiddleware'
 
 const app = express()
@@ -78,6 +80,8 @@ app.use('/api/categories', authMiddleware, categoryRouter)
 app.use('/api/tags', authMiddleware, tagRouter)
 app.use('/api/items', authMiddleware, itemRouter)
 app.use('/api/dumpster', authMiddleware, dumpsterRouter)
+app.use('/api/shares', authMiddleware, shareRouter)
+app.use('/api/notifications', authMiddleware, notificationRouter)
 
 // SPA fallback — must be after API routes
 app.get(/^(?!\/api|\/uploads).*/, (_req, res) => {

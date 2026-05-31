@@ -37,7 +37,10 @@ const SearchResults: React.FC = () => {
     searchItems(q)
       .then(setResults)
       .catch(() => setResults([]))
-      .finally(() => { setLoading(false); setSearched(true); });
+      .finally(() => {
+        setLoading(false);
+        setSearched(true);
+      });
   }, [q]);
 
   const goToItem = (item: SearchResultItem) => {
@@ -50,12 +53,16 @@ const SearchResults: React.FC = () => {
         <IconSearch size={20} />
         <Title order={3}>Results for "{q}"</Title>
         {searched && !loading && (
-          <Text size="sm" c="dimmed">— {results.length} item{results.length !== 1 ? 's' : ''}</Text>
+          <Text size="sm" c="dimmed">
+            — {results.length} item{results.length !== 1 ? 's' : ''}
+          </Text>
         )}
       </Group>
 
       {loading && (
-        <Center h={200}><Loader /></Center>
+        <Center h={200}>
+          <Loader />
+        </Center>
       )}
 
       {searched && !loading && results.length === 0 && (
@@ -86,18 +93,24 @@ const SearchResults: React.FC = () => {
               )}
 
               <Group justify="space-between" mb={4} wrap="nowrap">
-                <Text fw={600} lineClamp={1}>{item.name}</Text>
+                <Text fw={600} lineClamp={1}>
+                  {item.name}
+                </Text>
                 <Badge color="blue" variant="light" size="sm" style={{ flexShrink: 0 }}>
                   {item.roomId.name}
                 </Badge>
               </Group>
 
-              <Text size="sm" c="dimmed" mb="xs">Qty: {item.quantity}</Text>
+              <Text size="sm" c="dimmed" mb="xs">
+                Qty: {item.quantity}
+              </Text>
 
               {item.categories.length > 0 && (
                 <Group gap={4} mb={6} wrap="wrap">
                   {item.categories.map((cat) => (
-                    <Badge key={cat._id} color="violet" variant="light" size="sm">{cat.name}</Badge>
+                    <Badge key={cat._id} color="violet" variant="light" size="sm">
+                      {cat.name}
+                    </Badge>
                   ))}
                 </Group>
               )}
@@ -105,7 +118,9 @@ const SearchResults: React.FC = () => {
               {item.tags.length > 0 && (
                 <Group gap={4} wrap="wrap">
                   {item.tags.map((tag) => (
-                    <Badge key={tag._id} color="gray" variant="outline" size="sm">{tag.name}</Badge>
+                    <Badge key={tag._id} color="gray" variant="outline" size="sm">
+                      {tag.name}
+                    </Badge>
                   ))}
                 </Group>
               )}
@@ -113,7 +128,9 @@ const SearchResults: React.FC = () => {
               {item.notes && (
                 <>
                   <Divider my="xs" />
-                  <Text size="xs" c="dimmed" lineClamp={2}>{item.notes}</Text>
+                  <Text size="xs" c="dimmed" lineClamp={2}>
+                    {item.notes}
+                  </Text>
                 </>
               )}
             </Card>

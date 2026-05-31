@@ -7,17 +7,23 @@ import type {
   DumpsterContents,
   SearchResultItem,
   YardSaleItem,
+  Share,
+  Notification,
 } from '../types';
 
 const api = axios.create({ baseURL: '/api', withCredentials: true });
 
 // Auth
 export const initAuth = () =>
-  api.post<{ id: string; token: string; isNew: boolean; name: string }>('/auth/init').then((r) => r.data);
+  api
+    .post<{ id: string; token: string; isNew: boolean; name: string }>('/auth/init')
+    .then((r) => r.data);
 export const getShareUrl = () =>
   api.get<{ joinUrl: string }>('/auth/share').then((r) => r.data.joinUrl);
 export const switchHome = (token: string) =>
-  api.post<{ id: string; token: string; name: string }>('/auth/switch', { token }).then((r) => r.data);
+  api
+    .post<{ id: string; token: string; name: string }>('/auth/switch', { token })
+    .then((r) => r.data);
 export const updateHomeName = (name: string) =>
   api.patch<{ name: string }>('/auth/home', { name }).then((r) => r.data.name);
 
@@ -108,3 +114,34 @@ export const getYardSaleItems = () =>
   api.get<YardSaleItem[]>('/items/yard-sale').then((r) => r.data);
 export const getYardSaleCount = () =>
   api.get<{ total: number }>('/items/yard-sale/count').then((r) => r.data);
+
+// Shares
+export const createShare = (data: {
+  targetType: string;
+  targetId: string;
+  sharedWithToken: string;
+  canEdit?: boolean;
+}) => api.post<Share>('/shares', data).then((r) => r.data);
+export const getSharedWithMe = () => api.get<Share[]>('/shares/shared-with-me').then((r) => r.data);
+export const getSharedByMe = () => api.get<Share[]>('/shares/shared-by-me').then((r) => r.data);
+export const updateShare = (id: string, canEdit: boolean) =>
+  api.patch<Share>(`/shares/${id}`, { canEdit }).then((r) => r.data);
+export const removeShare = (id: string) => api.delete(`/shares/${id}`);
+
+// Notifications
+export const getNotifications = (params?: { unreadOnly?: boolean; limit?: number }) =>
+  api
+    .get<Notification[]>('/notifications', {
+      params: {
+        unreadOnly: params?.unreadOnly ? 'true' : undefined,
+        limit: params?.limit,
+      },
+    })
+    .then((r) => r.data);
+export const getUnreadNotificationCount = () =>
+  api.get<{ count: number }>('/notifications/unread-count').then((r) => r.data);
+export const markNotificationRead = (id: string) =>
+  api.patch<Notification>(`/notifications/${id}/read`).then((r) => r.data);
+export const markAllNotificationsRead = () =>
+  api.post('/notifications/mark-all-read').then((r) => r.data);
+export const deleteNotification = (id: string) => api.delete(`/notifications/${id}`);

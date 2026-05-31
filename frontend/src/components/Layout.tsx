@@ -26,9 +26,12 @@ import {
   IconSettings,
   IconX,
   IconCheck,
+  IconUsers,
+  IconBell,
 } from '@tabler/icons-react';
 import { useRooms } from '../contexts/RoomsContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useNotifications } from '../contexts/NotificationsContext';
 import SearchBar from './SearchBar';
 import RecoveryModal from './RecoveryModal';
 
@@ -47,6 +50,7 @@ const Layout: React.FC = () => {
     switchHome,
     leaveHome,
   } = useAuth();
+  const { unreadCount } = useNotifications();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -79,6 +83,27 @@ const Layout: React.FC = () => {
           </Group>
           <Group gap="xs">
             <SearchBar />
+            <Tooltip label="Notifications" withArrow position="bottom">
+              <ActionIcon
+                variant="light"
+                size="md"
+                onClick={() => navigate('/notifications')}
+                aria-label="Notifications"
+                style={{ position: 'relative' }}
+              >
+                <IconBell size={16} />
+                {unreadCount > 0 && (
+                  <Badge
+                    size="xs"
+                    color="red"
+                    circle
+                    style={{ position: 'absolute', top: -4, right: -4 }}
+                  >
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </Badge>
+                )}
+              </ActionIcon>
+            </Tooltip>
             <Tooltip label="Share this household" withArrow position="bottom">
               <ActionIcon variant="light" size="md" onClick={openRecoveryModal} aria-label="Share">
                 <IconShare size={16} />
@@ -167,6 +192,16 @@ const Layout: React.FC = () => {
             onClick={close}
             mb="xs"
             color="yellow"
+          />
+          <NavLink
+            component={Link}
+            to="/shared-with-me"
+            label="Shared with Me"
+            leftSection={<IconUsers size={16} />}
+            active={location.pathname === '/shared-with-me'}
+            onClick={close}
+            mb="xs"
+            color="violet"
           />
           <Divider mb="xs" label="Rooms" labelPosition="left" />
           <ScrollArea flex={1}>

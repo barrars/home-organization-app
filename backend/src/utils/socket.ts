@@ -1,6 +1,7 @@
 import { Server } from 'socket.io'
 import type { Server as HttpServer } from 'http'
 import { Home } from '../models/home.model'
+import { Notification } from '../models/notification.model'
 
 let io: Server
 
@@ -49,4 +50,13 @@ export function emitToHome(
   data: unknown,
 ): void {
   getIO().to(`home:${homeId}`).emit(event, data)
+
+  // Persist as a notification so offline users can catch up later
+  Notification.create({
+    homeId,
+    event,
+    data: (data && typeof data === 'object' ? data : { payload: data }) as Record<string, unknown>,
+  }).catch((err) => {
+    console.error('[socket] Failed to persist notification', err)
+  })
 }

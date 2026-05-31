@@ -49,12 +49,20 @@ const YardSale: React.FC = () => {
     try {
       const data = await getYardSaleItems();
       setItems(data);
-    } catch { /* non-critical */ }
+    } catch {
+      /* non-critical */
+    }
   }, []);
 
   useEffect(() => {
     const socket = getSocket();
-    const events = ['item:updated', 'item:deleted', 'item:restored', 'room:restored', 'room:deleted'];
+    const events = [
+      'item:updated',
+      'item:deleted',
+      'item:restored',
+      'room:restored',
+      'room:deleted',
+    ];
     events.forEach((e) => socket.on(e, backgroundLoad));
     return () => events.forEach((e) => socket.off(e, backgroundLoad));
   }, [backgroundLoad]);
@@ -72,7 +80,10 @@ const YardSale: React.FC = () => {
       setItems((prev) => prev.filter((i) => i._id !== movingItem._id));
       refreshCounts();
       const roomName = rooms.find((r) => r._id === targetRoomId)?.name ?? 'the new room';
-      notifications.show({ message: `"${movingItem.name}" moved to ${roomName} ✅`, color: 'green' });
+      notifications.show({
+        message: `"${movingItem.name}" moved to ${roomName} ✅`,
+        color: 'green',
+      });
       closeMoveModal();
     } catch {
       notifications.show({ message: 'Failed to move item', color: 'red' });
@@ -96,7 +107,12 @@ const YardSale: React.FC = () => {
 
   const activeRoomOptions = rooms.map((r) => ({ value: r._id, label: r.name }));
 
-  if (loading) return <Center h={200}><Loader /></Center>;
+  if (loading)
+    return (
+      <Center h={200}>
+        <Loader />
+      </Center>
+    );
 
   return (
     <>
@@ -116,8 +132,12 @@ const YardSale: React.FC = () => {
             searchable
           />
           <Group justify="flex-end">
-            <Button variant="default" onClick={closeMoveModal}>Cancel</Button>
-            <Button disabled={!targetRoomId} onClick={handleMoveConfirm}>Move</Button>
+            <Button variant="default" onClick={closeMoveModal}>
+              Cancel
+            </Button>
+            <Button disabled={!targetRoomId} onClick={handleMoveConfirm}>
+              Move
+            </Button>
           </Group>
         </Stack>
       </Modal>
@@ -149,26 +169,38 @@ const YardSale: React.FC = () => {
             <Card key={item._id} shadow="sm" padding="md" radius="md" withBorder>
               <Stack gap="xs">
                 <Group justify="space-between" align="flex-start">
-                  <Text fw={600} size="md" style={{ flex: 1 }}>{item.name}</Text>
-                  <Badge size="sm" variant="light" color="gray">×{item.quantity}</Badge>
+                  <Text fw={600} size="md" style={{ flex: 1 }}>
+                    {item.name}
+                  </Text>
+                  <Badge size="sm" variant="light" color="gray">
+                    ×{item.quantity}
+                  </Badge>
                 </Group>
-                <Text size="xs" c="dimmed">Was in: <b>{getOldRoomName(item)}</b></Text>
+                <Text size="xs" c="dimmed">
+                  Was in: <b>{getOldRoomName(item)}</b>
+                </Text>
                 {item.categories.length > 0 && (
                   <Group gap={4} wrap="wrap">
                     {item.categories.map((c) => (
-                      <Badge key={c._id} size="xs" color="blue" variant="light">{c.name}</Badge>
+                      <Badge key={c._id} size="xs" color="blue" variant="light">
+                        {c.name}
+                      </Badge>
                     ))}
                   </Group>
                 )}
                 {item.tags.length > 0 && (
                   <Group gap={4} wrap="wrap">
                     {item.tags.map((t) => (
-                      <Badge key={t._id} size="xs" color="grape" variant="light">{t.name}</Badge>
+                      <Badge key={t._id} size="xs" color="grape" variant="light">
+                        {t.name}
+                      </Badge>
                     ))}
                   </Group>
                 )}
                 {item.notes && (
-                  <Text size="xs" c="dimmed" lineClamp={2}>{item.notes}</Text>
+                  <Text size="xs" c="dimmed" lineClamp={2}>
+                    {item.notes}
+                  </Text>
                 )}
                 <Group gap="xs" mt="xs">
                   <Button

@@ -46,3 +46,30 @@ export interface SearchResultItem extends Omit<Item, 'roomId'> {
 export interface YardSaleItem extends Omit<Item, 'roomId'> {
   roomId: { _id: string; name: string } | string;
 }
+
+/** Share target types */
+export type ShareTargetType = 'home' | 'room' | 'item';
+
+/** A share record */
+export interface Share {
+  _id: string;
+  ownerHomeId: string;
+  sharedWithHomeId: string;
+  targetType: ShareTargetType;
+  targetId: string;
+  canEdit: boolean;
+  createdAt: string;
+  updatedAt: string;
+  target?: Record<string, unknown> | null;
+}
+
+/** A notification record */
+export interface Notification {
+  _id: string;
+  homeId: string;
+  event: string;
+  data: Record<string, unknown>;
+  read: boolean;
+  createdAt: string;
+  updatedAt: string;
+}

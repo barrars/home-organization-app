@@ -166,7 +166,9 @@ const RoomPage: React.FC = () => {
       notifications.show({
         message: (
           <Group gap="xs" wrap="nowrap" justify="space-between">
-            <Text size="sm">📦 "{itemSnapshot.name}" moved to {targetRoom?.name ?? 'new room'}</Text>
+            <Text size="sm">
+              📦 "{itemSnapshot.name}" moved to {targetRoom?.name ?? 'new room'}
+            </Text>
             <Anchor
               size="sm"
               fw={600}
@@ -396,7 +398,12 @@ const RoomPage: React.FC = () => {
               fw={700}
               size="xs"
               tt="uppercase"
-              style={{ letterSpacing: '0.07em', color: 'var(--mantine-color-gray-7)', lineHeight: 1, paddingBottom: 2 }}
+              style={{
+                letterSpacing: '0.07em',
+                color: 'var(--mantine-color-gray-7)',
+                lineHeight: 1,
+                paddingBottom: 2,
+              }}
             >
               Sort &amp; Filter
             </Text>
@@ -447,7 +454,9 @@ const RoomPage: React.FC = () => {
                 );
               })}
               {allCategories.length > 0 && allTags.length > 0 && (
-                <Text size="xs" c="dimmed" style={{ lineHeight: 1 }}>·</Text>
+                <Text size="xs" c="dimmed" style={{ lineHeight: 1 }}>
+                  ·
+                </Text>
               )}
               {allTags.map((tag) => {
                 const active = selectedTagIds.includes(tag._id);
@@ -493,7 +502,14 @@ const RoomPage: React.FC = () => {
       ) : (
         <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }}>
           {filteredItems.map((item) => (
-            <Card key={item._id} shadow="xs" padding="md" radius="md" withBorder className={newItemIds.has(item._id) ? 'item-enter' : undefined}>
+            <Card
+              key={item._id}
+              shadow="xs"
+              padding="md"
+              radius="md"
+              withBorder
+              className={newItemIds.has(item._id) ? 'item-enter' : undefined}
+            >
               {/* Photo area */}
               {getItemImages(item).length > 0 ? (
                 <Card.Section mb="sm" style={{ position: 'relative' }}>
@@ -585,7 +601,10 @@ const RoomPage: React.FC = () => {
                       color="indigo"
                       variant="subtle"
                       size="sm"
-                      onClick={() => { setMoveItem(item); setMoveTargetRoomId(null); }}
+                      onClick={() => {
+                        setMoveItem(item);
+                        setMoveTargetRoomId(null);
+                      }}
                     >
                       <IconArrowRight size={14} />
                     </ActionIcon>
@@ -640,7 +659,10 @@ const RoomPage: React.FC = () => {
 
       <Modal
         opened={!!moveItem}
-        onClose={() => { setMoveItem(null); setMoveTargetRoomId(null); }}
+        onClose={() => {
+          setMoveItem(null);
+          setMoveTargetRoomId(null);
+        }}
         title={`Move "${moveItem?.name}"`}
         size="sm"
       >
@@ -648,14 +670,26 @@ const RoomPage: React.FC = () => {
           <Select
             label="Choose a destination room"
             placeholder="Pick a room..."
-            data={rooms.filter((r) => r._id !== roomId).map((r) => ({ value: r._id, label: r.name }))}
+            data={rooms
+              .filter((r) => r._id !== roomId)
+              .map((r) => ({ value: r._id, label: r.name }))}
             value={moveTargetRoomId}
             onChange={setMoveTargetRoomId}
             searchable
           />
           <Group justify="flex-end">
-            <Button variant="default" onClick={() => { setMoveItem(null); setMoveTargetRoomId(null); }}>Cancel</Button>
-            <Button disabled={!moveTargetRoomId} onClick={handleMoveConfirm}>Move</Button>
+            <Button
+              variant="default"
+              onClick={() => {
+                setMoveItem(null);
+                setMoveTargetRoomId(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button disabled={!moveTargetRoomId} onClick={handleMoveConfirm}>
+              Move
+            </Button>
           </Group>
         </Stack>
       </Modal>
