@@ -12,11 +12,11 @@
     "format:check": "prettier --check \"src/**/*.{ts,tsx,json,css}\""
   },
   "dependencies": {
-    "@mantine/carousel": "^9.2.2",
-    "@mantine/core": "^9.2.1",
-    "@mantine/form": "^9.2.1",
-    "@mantine/hooks": "^9.2.1",
-    "@mantine/notifications": "^9.2.1",
+    "@mantine/carousel": "9.2.2",
+    "@mantine/core": "9.2.2",
+    "@mantine/form": "9.2.2",
+    "@mantine/hooks": "9.2.2",
+    "@mantine/notifications": "9.2.2",
     "@tabler/icons-react": "^3.44.0",
     "axios": "^1.16.1",
     "embla-carousel-react": "^8.6.0",
