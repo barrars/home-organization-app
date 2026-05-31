@@ -25,7 +25,8 @@ import CreateRoomModal from '../components/CreateRoomModal';
 import { RoomIcon } from '../utils/roomIcons';
 
 const Dashboard: React.FC = () => {
-  const { rooms, loading, backgroundRefresh, newRoomIds, removeRoom, refreshCounts, itemCounts } = useRooms();
+  const { rooms, loading, backgroundRefresh, newRoomIds, removeRoom, refreshCounts, itemCounts } =
+    useRooms();
   const [modalOpen, setModalOpen] = useState(false);
   const [editRoom, setEditRoom] = useState<Room | null>(null);
   const [recentItems, setRecentItems] = useState<Item[]>([]);
@@ -45,8 +46,12 @@ const Dashboard: React.FC = () => {
         setTags(allTags);
       })
       .catch(() => {})
-      .finally(() => { if (!cancelled) setLoadingExtras(false); });
-    return () => { cancelled = true; };
+      .finally(() => {
+        if (!cancelled) setLoadingExtras(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const handleDelete = async (e: React.MouseEvent, room: Room) => {
@@ -59,7 +64,12 @@ const Dashboard: React.FC = () => {
         message: (
           <Group gap="xs" wrap="nowrap" justify="space-between">
             <Text size="sm">🗑️ "{room.name}" tossed in the Dumpster</Text>
-            <Anchor size="sm" fw={600} onClick={() => navigate('/dumpster')} style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
+            <Anchor
+              size="sm"
+              fw={600}
+              onClick={() => navigate('/dumpster')}
+              style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}
+            >
               View →
             </Anchor>
           </Group>
@@ -126,7 +136,10 @@ const Dashboard: React.FC = () => {
                       color="blue"
                       variant="subtle"
                       size="sm"
-                      onClick={(e) => { e.stopPropagation(); setEditRoom(room); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditRoom(room);
+                      }}
                     >
                       <IconEdit size={14} />
                     </ActionIcon>
@@ -158,7 +171,10 @@ const Dashboard: React.FC = () => {
 
       <CreateRoomModal
         opened={modalOpen || editRoom !== null}
-        onClose={() => { setModalOpen(false); setEditRoom(null); }}
+        onClose={() => {
+          setModalOpen(false);
+          setEditRoom(null);
+        }}
         onCreated={() => {
           backgroundRefresh();
           setModalOpen(false);
@@ -171,10 +187,14 @@ const Dashboard: React.FC = () => {
       <Divider mt="xl" mb="md" label="Recently Added" labelPosition="left" />
       {loadingExtras ? (
         <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="sm">
-          {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} h={80} radius="md" />)}
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} h={80} radius="md" />
+          ))}
         </SimpleGrid>
       ) : recentItems.length === 0 ? (
-        <Text size="sm" c="dimmed">No items yet — add some to a room to see them here.</Text>
+        <Text size="sm" c="dimmed">
+          No items yet — add some to a room to see them here.
+        </Text>
       ) : (
         <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="sm">
           {recentItems.map((item) => {
@@ -189,9 +209,13 @@ const Dashboard: React.FC = () => {
                 onClick={() => navigate(`/rooms/${item.roomId}`)}
               >
                 <Group justify="space-between" wrap="nowrap" mb={2}>
-                  <Text size="sm" fw={500} lineClamp={1}>{item.name}</Text>
+                  <Text size="sm" fw={500} lineClamp={1}>
+                    {item.name}
+                  </Text>
                   {item.quantity > 1 && (
-                    <Badge size="xs" color="blue" variant="light">×{item.quantity}</Badge>
+                    <Badge size="xs" color="blue" variant="light">
+                      ×{item.quantity}
+                    </Badge>
                   )}
                 </Group>
                 {room && (
@@ -202,7 +226,9 @@ const Dashboard: React.FC = () => {
                 {item.tags.length > 0 && (
                   <Group gap={4} mt={4}>
                     {item.tags.slice(0, 4).map((t) => (
-                      <Badge key={t._id} size="xs" variant="outline" color="gray">{t.name}</Badge>
+                      <Badge key={t._id} size="xs" variant="outline" color="gray">
+                        {t.name}
+                      </Badge>
                     ))}
                   </Group>
                 )}

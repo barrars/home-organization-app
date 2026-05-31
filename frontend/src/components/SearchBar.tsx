@@ -1,14 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Box,
-  Combobox,
-  Image,
-  Loader,
-  Text,
-  TextInput,
-  useCombobox,
-} from '@mantine/core';
+import { Box, Combobox, Image, Loader, Text, TextInput, useCombobox } from '@mantine/core';
 import { IconSearch } from '@tabler/icons-react';
 import { searchItems } from '../services/api';
 import type { SearchResultItem } from '../types';
@@ -50,7 +42,9 @@ const SearchBar: React.FC = () => {
       return;
     }
     debounceRef.current = setTimeout(() => runSearch(query), 220);
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
   }, [query, runSearch]);
 
   // Open/close dropdown whenever suggestions or query change.
@@ -62,7 +56,7 @@ const SearchBar: React.FC = () => {
     } else {
       combobox.closeDropdown();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [suggestions, query]);
 
   const goToItem = (item: SearchResultItem) => {
@@ -85,16 +79,24 @@ const SearchBar: React.FC = () => {
   };
 
   return (
-    <Combobox store={combobox} onOptionSubmit={(val) => {
-      const item = suggestions.find((s) => s._id === val);
-      if (item) goToItem(item);
-    }}>
+    <Combobox
+      store={combobox}
+      onOptionSubmit={(val) => {
+        const item = suggestions.find((s) => s._id === val);
+        if (item) goToItem(item);
+      }}
+    >
       <Combobox.Target>
         <TextInput
           placeholder="Search items…"
           value={query}
-          onChange={(e) => { setQuery(e.currentTarget.value); combobox.openDropdown(); }}
-          onFocus={() => { if (suggestions.length > 0) combobox.openDropdown(); }}
+          onChange={(e) => {
+            setQuery(e.currentTarget.value);
+            combobox.openDropdown();
+          }}
+          onFocus={() => {
+            if (suggestions.length > 0) combobox.openDropdown();
+          }}
           onBlur={() => combobox.closeDropdown()}
           onKeyDown={handleKeyDown}
           leftSection={loading ? <Loader size={14} /> : <IconSearch size={14} />}
@@ -110,13 +112,32 @@ const SearchBar: React.FC = () => {
             <Combobox.Option key={item._id} value={item._id}>
               <Box style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 {getPrimaryImage(item) ? (
-                  <Image src={getPrimaryImage(item)} w={36} h={36} fit="cover" radius="sm" style={{ flexShrink: 0 }} />
+                  <Image
+                    src={getPrimaryImage(item)}
+                    w={36}
+                    h={36}
+                    fit="cover"
+                    radius="sm"
+                    style={{ flexShrink: 0 }}
+                  />
                 ) : (
-                  <Box w={36} h={36} style={{ background: 'var(--mantine-color-gray-1)', borderRadius: 6, flexShrink: 0 }} />
+                  <Box
+                    w={36}
+                    h={36}
+                    style={{
+                      background: 'var(--mantine-color-gray-1)',
+                      borderRadius: 6,
+                      flexShrink: 0,
+                    }}
+                  />
                 )}
                 <Box style={{ minWidth: 0 }}>
-                  <Text size="sm" fw={500} truncate>{item.name}</Text>
-                  <Text size="xs" c="dimmed" truncate>{item.roomId.name}</Text>
+                  <Text size="sm" fw={500} truncate>
+                    {item.name}
+                  </Text>
+                  <Text size="xs" c="dimmed" truncate>
+                    {item.roomId.name}
+                  </Text>
                 </Box>
               </Box>
             </Combobox.Option>

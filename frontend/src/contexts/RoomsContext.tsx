@@ -44,7 +44,11 @@ export const RoomsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const refreshCounts = useCallback(async () => {
     try {
-      const [counts, dumpster, yardSale] = await Promise.all([getItemCountsByRoom(), getDumpsterCount(), getYardSaleCount()]);
+      const [counts, dumpster, yardSale] = await Promise.all([
+        getItemCountsByRoom(),
+        getDumpsterCount(),
+        getYardSaleCount(),
+      ]);
       setItemCounts(counts);
       setDumpsterCount(dumpster.total);
       setYardSaleCount(yardSale.total);
@@ -64,7 +68,10 @@ export const RoomsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const backgroundRefresh = useCallback(async () => {
     try {
       const [data, counts, dumpster, yardSale] = await Promise.all([
-        getRooms(), getItemCountsByRoom(), getDumpsterCount(), getYardSaleCount(),
+        getRooms(),
+        getItemCountsByRoom(),
+        getDumpsterCount(),
+        getYardSaleCount(),
       ]);
       const prevIds = new Set(roomsRef.current.map((r) => r._id));
       const added = new Set(data.filter((r) => !prevIds.has(r._id)).map((r) => r._id));
@@ -92,7 +99,9 @@ export const RoomsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Keep a ref so the socket handler always calls the latest backgroundRefresh()
   // without needing to re-register listeners on every render.
   const backgroundRefreshRef = useRef(backgroundRefresh);
-  useEffect(() => { backgroundRefreshRef.current = backgroundRefresh; });
+  useEffect(() => {
+    backgroundRefreshRef.current = backgroundRefresh;
+  });
 
   useEffect(() => {
     const socket = getSocket();
@@ -137,7 +146,9 @@ export const RoomsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // for both socket.on and socket.off — otherwise cleanup can't deregister them.
     const handlers = Object.fromEntries(events.map((e) => [e, handle(e)]));
     events.forEach((e) => socket.on(e, handlers[e]));
-    return () => { events.forEach((e) => socket.off(e, handlers[e])); };
+    return () => {
+      events.forEach((e) => socket.off(e, handlers[e]));
+    };
   }, []); // empty — registers once for the lifetime of the provider
 
   // When the page becomes visible again (e.g. returning from background on mobile),
@@ -155,7 +166,22 @@ export const RoomsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   return (
-    <RoomsContext.Provider value={{ rooms, loading, refresh, backgroundRefresh, removeRoom, newRoomIds, itemCounts, dumpsterCount, yardSaleCount, refreshCounts }}>{children}</RoomsContext.Provider>
+    <RoomsContext.Provider
+      value={{
+        rooms,
+        loading,
+        refresh,
+        backgroundRefresh,
+        removeRoom,
+        newRoomIds,
+        itemCounts,
+        dumpsterCount,
+        yardSaleCount,
+        refreshCounts,
+      }}
+    >
+      {children}
+    </RoomsContext.Provider>
   );
 };
 
