@@ -2,7 +2,7 @@
 
 > **Your entire world, catalogued.** A flexible, collaborative inventory system built around the structure of a home — but powerful enough for any collection, hobby, or household project.
 
-> 📄 **[View the visual overview →](docs/overview.html)**
+> 📄 **[View the visual overview →](https://htmlpreview.github.io/?https://github.com/barrars/home-organization-app/blob/master/docs/overview.html)**
 
 ---
 
