@@ -291,7 +291,7 @@ const AddItemModal: React.FC<Props> = ({
                 {photos.length > 1 && (
                   <Carousel
                     withIndicators
-                    loop
+                    emblaOptions={{ loop: true }}
                     height={200}
                     style={{ borderRadius: 8, overflow: 'hidden' }}
                   >

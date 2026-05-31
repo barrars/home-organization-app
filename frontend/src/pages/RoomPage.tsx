@@ -567,7 +567,7 @@ const RoomPage: React.FC = () => {
                       >
                         {getItemImages(item).length} photos
                       </Badge>
-                      <Carousel loop withIndicators height={160}>
+                      <Carousel withIndicators emblaOptions={{ loop: true }} height={160}>
                         {getItemImages(item).map((url, idx) => (
                           <Carousel.Slide key={idx}>
                             <Image
