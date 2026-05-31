@@ -2,6 +2,8 @@
 
 > **Your entire world, catalogued.** A flexible, collaborative inventory system built around the structure of a home — but powerful enough for any collection, hobby, or household project.
 
+> 📄 **[View the visual overview →](docs/overview.html)**
+
 ---
 
 ## What Is This?
