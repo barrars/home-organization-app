@@ -576,11 +576,9 @@ const RoomPage: React.FC = () => {
               &nbsp;
             </Text>
           )}
-          {!loading && (
-            <Text size="xs" c="dimmed" mt={4}>
-              {filteredItems.length} of {items.length} item{items.length !== 1 ? 's' : ''}
-            </Text>
-          )}
+          <Text size="xs" c="dimmed" mt={4} style={{ visibility: loading ? 'hidden' : 'visible' }}>
+            {filteredItems.length} of {items.length} item{items.length !== 1 ? 's' : ''}
+          </Text>
         </div>
 
         {/* Add Item — pinned right */}
