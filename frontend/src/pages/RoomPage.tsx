@@ -471,7 +471,7 @@ const RoomPage: React.FC = () => {
       />
 
       <Group mb="md" align="flex-end" gap={0} wrap="nowrap">
-        <ScrollArea style={{ flex: 1 }} type="hover">
+        <ScrollArea style={{ flex: 1 }} type="hover" scrollbarSize={4}>
           <Tabs
             value={roomId}
             onChange={(v) => v && navigate(`/rooms/${v}`)}
@@ -524,40 +524,16 @@ const RoomPage: React.FC = () => {
         editRoom={room}
       />
 
-      <Group justify="space-between" mb="xl">
-        <Group gap={6} align="center">
-          <div>
-            <Group gap={6} align="center">
-              <Title order={2}>{room?.name ?? '…'}</Title>
-              {room && (
-                <Tooltip label="Edit room" withArrow position="top">
-                  <ActionIcon
-                    variant="subtle"
-                    color="gray"
-                    size="sm"
-                    onClick={() => setEditRoomOpen(true)}
-                    aria-label="Edit room"
-                  >
-                    <IconEdit size={14} />
-                  </ActionIcon>
-                </Tooltip>
-              )}
-            </Group>
-            {room?.description && (
-              <Text c="dimmed" size="sm">
-                {room.description}
-              </Text>
-            )}
-            {!loading && (
-              <Text size="xs" c="dimmed" mt={4}>
-                {filteredItems.length} of {items.length} item{items.length !== 1 ? 's' : ''}
-              </Text>
-            )}
-          </div>
-        </Group>
-        <Button leftSection={<IconPlus size={16} />} onClick={() => setAddModalOpen(true)}>
-          Add Item
-        </Button>
+      <Box
+        mb="xl"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'auto 1fr auto',
+          alignItems: 'center',
+          gap: 'var(--mantine-spacing-md)',
+        }}
+      >
+        {/* Share — pinned left */}
         <Tooltip label="Share this room" withArrow position="top">
           <ActionIcon
             variant="light"
@@ -571,7 +547,47 @@ const RoomPage: React.FC = () => {
             <IconShare size={16} />
           </ActionIcon>
         </Tooltip>
-      </Group>
+
+        {/* Room meta — middle column; minWidth:0 lets grid shrink it so text can't overflow */}
+        <div style={{ minWidth: 0 }}>
+          <Group gap={6} align="center">
+            <Title order={2}>{room?.name ?? '…'}</Title>
+            {room && (
+              <Tooltip label="Edit room" withArrow position="top">
+                <ActionIcon
+                  variant="subtle"
+                  color="gray"
+                  size="sm"
+                  onClick={() => setEditRoomOpen(true)}
+                  aria-label="Edit room"
+                >
+                  <IconEdit size={14} />
+                </ActionIcon>
+              </Tooltip>
+            )}
+          </Group>
+          {room?.description && (
+            <Text c="dimmed" size="sm" lineClamp={2}>
+              {room.description}
+            </Text>
+          )}
+          {!room?.description && (
+            <Text c="dimmed" size="sm" style={{ visibility: 'hidden' }}>
+              &nbsp;
+            </Text>
+          )}
+          {!loading && (
+            <Text size="xs" c="dimmed" mt={4}>
+              {filteredItems.length} of {items.length} item{items.length !== 1 ? 's' : ''}
+            </Text>
+          )}
+        </div>
+
+        {/* Add Item — pinned right */}
+        <Button leftSection={<IconPlus size={16} />} onClick={() => setAddModalOpen(true)}>
+          Add Item
+        </Button>
+      </Box>
 
       {!loading && items.length > 0 && (
         <Box
