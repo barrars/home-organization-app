@@ -24,3 +24,45 @@
 .item-enter {
   animation: itemFadeIn 0.4s ease-out both;
 }
+
+/* ── Card carousel controls ────────────────────────────────────── */
+/* Dark pill buttons so arrows are visible over any image colour.  */
+.card-carousel-control {
+  background-color: rgba(0, 0, 0, 0.62) !important;
+  color: white !important;
+  border-color: rgba(255, 255, 255, 0.18) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4) !important;
+  opacity: 1 !important;
+}
+.card-carousel-control:hover {
+  background-color: rgba(0, 0, 0, 0.88) !important;
+}
+
+/* ── Lightbox carousel controls ─────────────────────────────────  */
+.lightbox-carousel-control {
+  background-color: rgba(255, 255, 255, 0.14) !important;
+  color: white !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6) !important;
+  opacity: 1 !important;
+  /* override the default control size */
+  min-width: 40px !important;
+  min-height: 40px !important;
+}
+.lightbox-carousel-control:hover {
+  background-color: rgba(255, 255, 255, 0.28) !important;
+}
+
+/* ── Lightbox carousel indicators ───────────────────────────────  */
+.lightbox-carousel-indicator {
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50% !important;
+  background-color: rgba(255, 255, 255, 0.38) !important;
+  opacity: 1 !important;
+  transition: background-color 200ms ease, transform 200ms ease !important;
+}
+.lightbox-carousel-indicator[data-active] {
+  background-color: white !important;
+  transform: scale(1.3);
+}

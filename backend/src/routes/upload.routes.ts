@@ -2,7 +2,13 @@ import { Router, Request, Response, NextFunction } from 'express'
 import multer from 'multer'
 import fs from 'fs'
 import path from 'path'
+import sharp from 'sharp'
 import { upload } from '../middleware/upload'
+
+// Max pixel dimension for the long edge of processed images.
+// Large enough for a comfortable full-screen modal, small enough to be fast.
+const MAX_IMAGE_DIMENSION = 1200
+const WEBP_QUALITY = 82
 
 // JPEG: FF D8 FF
 // PNG:  89 50 4E 47
@@ -49,7 +55,7 @@ router.post(
       next()
     })
   },
-  (req: Request, res: Response) => {
+  async (req: Request, res: Response) => {
     const file = (req as Request & { file?: Express.Multer.File }).file
     if (!file) {
       res.status(400).json({ message: 'No file uploaded' })
@@ -73,16 +79,42 @@ router.post(
       return
     }
 
-    // If the stored file has no extension, rename it with the correct one
-    let filename = file.filename
-    if (!path.extname(filename)) {
-      const newFilename = filename + detectedExt
-      const newPath = path.join(path.dirname(file.path), newFilename)
-      fs.renameSync(file.path, newPath)
-      filename = newFilename
+    // Resize and convert to WebP so we never serve multi-MB originals.
+    // Output: longest edge ≤ MAX_IMAGE_DIMENSION px, WebP at WEBP_QUALITY.
+    // We write to a new file then remove the original so a crash mid-write
+    // doesn't corrupt the stored file.
+    const basename = path.basename(file.filename, path.extname(file.filename))
+    const outFilename = `${basename}.webp`
+    const outPath = path.join(path.dirname(file.path), outFilename)
+
+    try {
+      await sharp(file.path)
+        .rotate() // honour EXIF orientation
+        .resize({
+          width: MAX_IMAGE_DIMENSION,
+          height: MAX_IMAGE_DIMENSION,
+          fit: 'inside',
+          withoutEnlargement: true,
+        })
+        .webp({ quality: WEBP_QUALITY })
+        .toFile(outPath)
+
+      fs.unlinkSync(file.path) // remove the raw upload
+    } catch {
+      // If sharp fails for any reason, fall back to serving the original
+      // (already validated as a real image above) with a corrected extension.
+      if (!fs.existsSync(outPath)) {
+        const fallbackPath = path.join(
+          path.dirname(file.path),
+          path.basename(file.filename, path.extname(file.filename)) + detectedExt,
+        )
+        fs.renameSync(file.path, fallbackPath)
+        res.json({ imageUrl: `/uploads/${path.basename(fallbackPath)}` })
+        return
+      }
     }
 
-    res.json({ imageUrl: `/uploads/${filename}` })
+    res.json({ imageUrl: `/uploads/${outFilename}` })
   },
 )
 

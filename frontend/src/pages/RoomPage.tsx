@@ -35,6 +35,7 @@ import {
   IconCopy,
   IconArrowRight,
   IconShare,
+  IconX,
 } from '@tabler/icons-react';
 import { getItems, deleteItem, uploadImage, updateItem } from '../services/api';
 import { getSocket } from '../services/socket';
@@ -52,6 +53,120 @@ const getItemImages = (item: Item): string[] => {
   return item.imageUrl?.trim() ? [item.imageUrl] : [];
 };
 
+// Isolated component so each card carousel owns its own currentSlide state
+// without causing the whole page to re-render on every swipe.
+interface ItemPhotoAreaProps {
+  item: Item;
+  uploadingFor: string | null;
+  onOpenLightbox: (urls: string[], idx: number) => void;
+  onOpenPhotoPicker: (itemId: string) => void;
+}
+
+const ItemPhotoArea: React.FC<ItemPhotoAreaProps> = ({
+  item,
+  uploadingFor,
+  onOpenLightbox,
+  onOpenPhotoPicker,
+}) => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const images = getItemImages(item);
+
+  if (images.length === 0) {
+    return (
+      <Box
+        mb="sm"
+        h={72}
+        onClick={() => onOpenPhotoPicker(item._id)}
+        style={{
+          border: '2px dashed var(--mantine-color-gray-3)',
+          borderRadius: 8,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 6,
+          cursor: 'pointer',
+          color: 'var(--mantine-color-dimmed)',
+        }}
+      >
+        {uploadingFor === item._id ? (
+          <Loader size="xs" />
+        ) : (
+          <>
+            <IconPhoto size={18} />
+            <Text size="xs">Add Photo</Text>
+          </>
+        )}
+      </Box>
+    );
+  }
+
+  return (
+    <Card.Section mb="sm" style={{ position: 'relative' }}>
+      {images.length > 1 ? (
+        <div style={{ position: 'relative' }}>
+          <Carousel
+            emblaOptions={{ loop: true }}
+            height={160}
+            onSlideChange={setCurrentSlide}
+            classNames={{ control: 'card-carousel-control' }}
+          >
+            {images.map((url, idx) => (
+              <Carousel.Slide key={idx}>
+                <Image
+                  src={url}
+                  height={160}
+                  fit="scale-down"
+                  style={{ cursor: 'zoom-in' }}
+                  onClick={() => onOpenLightbox(images, idx)}
+                />
+              </Carousel.Slide>
+            ))}
+          </Carousel>
+          {/* Slide counter — replaces the static "N photos" badge */}
+          <Box
+            style={{
+              position: 'absolute',
+              bottom: 6,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 10,
+              background: 'rgba(0,0,0,0.55)',
+              borderRadius: 12,
+              padding: '2px 8px',
+              pointerEvents: 'none',
+            }}
+          >
+            <Text size="xs" c="white" fw={500}>
+              {currentSlide + 1} / {images.length}
+            </Text>
+          </Box>
+        </div>
+      ) : (
+        <Image
+          src={images[0]}
+          height={160}
+          fit="scale-down"
+          style={{ cursor: 'zoom-in' }}
+          onClick={() => onOpenLightbox(images, 0)}
+        />
+      )}
+      <Tooltip label="Add photo(s)">
+        <ActionIcon
+          style={{ position: 'absolute', bottom: 8, right: 8, zIndex: 3 }}
+          size="sm"
+          variant="filled"
+          color="dark"
+          opacity={0.75}
+          onClick={() => onOpenPhotoPicker(item._id)}
+          loading={uploadingFor === item._id}
+        >
+          <IconCamera size={13} />
+        </ActionIcon>
+      </Tooltip>
+    </Card.Section>
+  );
+};
+
 const RoomPage: React.FC = () => {
   const { roomId } = useParams<{ roomId: string }>();
   const { rooms, refreshCounts, itemCounts } = useRooms();
@@ -64,13 +179,17 @@ const RoomPage: React.FC = () => {
   const [editItem, setEditItem] = useState<Item | null>(null);
   const [templateItem, setTemplateItem] = useState<Item | null>(null);
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
-  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [lightbox, setLightbox] = useState<{ urls: string[]; initialIndex: number } | null>(null);
   const [moveItem, setMoveItem] = useState<Item | null>(null);
   const [moveTargetRoomId, setMoveTargetRoomId] = useState<string | null>(null);
   const [newItemIds, setNewItemIds] = useState<Set<string>>(new Set());
   const [createRoomOpen, setCreateRoomOpen] = useState(false);
   const [editRoomOpen, setEditRoomOpen] = useState(false);
-  const [shareLinkTarget, setShareLinkTarget] = useState<{ type: 'room' | 'item'; id: string; name: string } | null>(null);
+  const [shareLinkTarget, setShareLinkTarget] = useState<{
+    type: 'room' | 'item';
+    id: string;
+    name: string;
+  } | null>(null);
 
   // Always-current ref so backgroundRefresh can diff without a stale closure
   const itemsRef = useRef<Item[]>([]);
@@ -203,20 +322,49 @@ const RoomPage: React.FC = () => {
     const itemId = activeItemIdRef.current;
     if (!files || files.length === 0 || !itemId) return;
 
+    const fileArray = Array.from(files);
+    const currentItem = items.find((i) => i._id === itemId);
+    const originalImages = currentItem ? getItemImages(currentItem) : [];
+
+    // Optimistically show the local file(s) immediately — no spinner on the card image.
+    const blobUrls = fileArray.map((f) => URL.createObjectURL(f));
+    setItems((prev) =>
+      prev.map((i) =>
+        i._id === itemId
+          ? {
+              ...i,
+              imageUrls: [...originalImages, ...blobUrls],
+              imageUrl: originalImages[0] ?? blobUrls[0] ?? '',
+            }
+          : i,
+      ),
+    );
+
     setUploadingFor(itemId);
     try {
-      const newUrls = await Promise.all(Array.from(files).map((f) => uploadImage(f)));
-      const currentItem = items.find((i) => i._id === itemId);
-      const currentImages = currentItem ? getItemImages(currentItem) : [];
-      const imageUrls = [...currentImages, ...newUrls];
+      const newUrls = await Promise.all(fileArray.map((f) => uploadImage(f)));
+      const imageUrls = [...originalImages, ...newUrls];
       await updateItem(itemId, { imageUrls });
+      // Swap optimistic blob URLs for the real server URLs
       setItems((prev) =>
         prev.map((i) => (i._id === itemId ? { ...i, imageUrls, imageUrl: imageUrls[0] ?? '' } : i)),
       );
-      notifications.show({ message: `${newUrls.length > 1 ? `${newUrls.length} photos` : 'Photo'} added!`, color: 'green' });
+      notifications.show({
+        message: `${newUrls.length > 1 ? `${newUrls.length} photos` : 'Photo'} added!`,
+        color: 'green',
+      });
     } catch {
+      // Roll back to original images on failure
+      setItems((prev) =>
+        prev.map((i) =>
+          i._id === itemId
+            ? { ...i, imageUrls: originalImages, imageUrl: originalImages[0] ?? '' }
+            : i,
+        ),
+      );
       notifications.show({ message: 'Failed to upload photo', color: 'red' });
     } finally {
+      blobUrls.forEach((u) => URL.revokeObjectURL(u));
       setUploadingFor(null);
       activeItemIdRef.current = null;
       if (photoInputRef.current) photoInputRef.current.value = '';
@@ -555,81 +703,12 @@ const RoomPage: React.FC = () => {
               className={newItemIds.has(item._id) ? 'item-enter' : undefined}
             >
               {/* Photo area */}
-              {getItemImages(item).length > 0 ? (
-                <Card.Section mb="sm" style={{ position: 'relative' }}>
-                  {getItemImages(item).length > 1 ? (
-                    <div style={{ position: 'relative' }}>
-                      <Badge
-                        size="xs"
-                        variant="filled"
-                        color="dark"
-                        style={{ position: 'absolute', top: 8, left: 8, zIndex: 10, pointerEvents: 'none' }}
-                      >
-                        {getItemImages(item).length} photos
-                      </Badge>
-                      <Carousel withIndicators emblaOptions={{ loop: true }} height={160}>
-                        {getItemImages(item).map((url, idx) => (
-                          <Carousel.Slide key={idx}>
-                            <Image
-                              src={url}
-                              height={160}
-                              fit="scale-down"
-                              style={{ cursor: 'zoom-in' }}
-                              onClick={() => setLightboxImage(url)}
-                            />
-                          </Carousel.Slide>
-                        ))}
-                      </Carousel>
-                    </div>
-                  ) : (
-                    <Image
-                      src={getItemImages(item)[0]}
-                      height={160}
-                      fit="scale-down"
-                      style={{ cursor: 'zoom-in' }}
-                      onClick={() => setLightboxImage(getItemImages(item)[0])}
-                    />
-                  )}
-                  <Tooltip label="Add photo(s)">
-                    <ActionIcon
-                      style={{ position: 'absolute', bottom: 8, right: 8, zIndex: 3 }}
-                      size="sm"
-                      variant="filled"
-                      color="dark"
-                      opacity={0.75}
-                      onClick={() => openPhotoPicker(item._id)}
-                      loading={uploadingFor === item._id}
-                    >
-                      <IconCamera size={13} />
-                    </ActionIcon>
-                  </Tooltip>
-                </Card.Section>
-              ) : (
-                <Box
-                  mb="sm"
-                  h={72}
-                  onClick={() => openPhotoPicker(item._id)}
-                  style={{
-                    border: '2px dashed var(--mantine-color-gray-3)',
-                    borderRadius: 8,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 6,
-                    cursor: 'pointer',
-                    color: 'var(--mantine-color-dimmed)',
-                  }}
-                >
-                  {uploadingFor === item._id ? (
-                    <Loader size="xs" />
-                  ) : (
-                    <>
-                      <IconPhoto size={18} />
-                      <Text size="xs">Add Photo</Text>
-                    </>
-                  )}
-                </Box>
-              )}
+              <ItemPhotoArea
+                item={item}
+                uploadingFor={uploadingFor}
+                onOpenLightbox={(urls, idx) => setLightbox({ urls, initialIndex: idx })}
+                onOpenPhotoPicker={openPhotoPicker}
+              />
 
               <Group justify="space-between" mb={6} wrap="nowrap">
                 <Text fw={600} lineClamp={1}>
@@ -767,27 +846,88 @@ const RoomPage: React.FC = () => {
       </Modal>
 
       <Modal
-        opened={!!lightboxImage}
-        onClose={() => setLightboxImage(null)}
+        opened={!!lightbox}
+        onClose={() => setLightbox(null)}
         size="xl"
         padding={0}
         withCloseButton={false}
         centered
-        styles={{ body: { padding: 0 } }}
+        styles={{
+          content: { background: '#111', overflow: 'hidden' },
+          body: { padding: 0 },
+        }}
       >
         <Box
-          style={{ cursor: 'pointer', userSelect: 'none' }}
-          onClick={() => setLightboxImage(null)}
+          style={{ position: 'relative' }}
           onTouchStart={(e) => {
             touchStartY.current = e.touches[0].clientY;
           }}
           onTouchEnd={(e) => {
-            if (e.changedTouches[0].clientY - touchStartY.current > 60) {
-              setLightboxImage(null);
-            }
+            if (e.changedTouches[0].clientY - touchStartY.current > 60) setLightbox(null);
           }}
         >
-          <Image src={lightboxImage ?? ''} fit="contain" mah="90vh" />
+          {/* Overlay close button */}
+          <ActionIcon
+            style={{ position: 'absolute', top: 10, right: 10, zIndex: 200 }}
+            variant="filled"
+            color="dark"
+            radius="xl"
+            size="lg"
+            onClick={() => setLightbox(null)}
+            aria-label="Close lightbox"
+          >
+            <IconX size={16} />
+          </ActionIcon>
+
+          {lightbox &&
+            (lightbox.urls.length > 1 ? (
+              <Carousel
+                withIndicators
+                initialSlide={lightbox.initialIndex}
+                emblaOptions={{ loop: true }}
+                height={520}
+                classNames={{
+                  control: 'lightbox-carousel-control',
+                  indicator: 'lightbox-carousel-indicator',
+                }}
+              >
+                {lightbox.urls.map((url, idx) => (
+                  <Carousel.Slide key={idx}>
+                    <Box
+                      style={{
+                        height: 520,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: '#111',
+                      }}
+                    >
+                      <Image src={url} fit="contain" mah={520} style={{ maxWidth: '100%' }} />
+                    </Box>
+                  </Carousel.Slide>
+                ))}
+              </Carousel>
+            ) : (
+              <Box
+                style={{
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                  background: '#111',
+                  minHeight: 300,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                onClick={() => setLightbox(null)}
+              >
+                <Image
+                  src={lightbox.urls[0] ?? ''}
+                  fit="contain"
+                  mah="90vh"
+                  style={{ maxWidth: '100%' }}
+                />
+              </Box>
+            ))}
         </Box>
       </Modal>
 
