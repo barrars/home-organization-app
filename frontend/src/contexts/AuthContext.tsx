@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { LoadingOverlay } from '@mantine/core';
-import { initAuth, updateHomeName, switchHome as switchHomeApi } from '../services/api';
+import { initAuth, updateHomeName, switchHome as switchHomeApi, rotateHomeToken } from '../services/api';
 import { getSocket } from '../services/socket';
 
 const ACTIVE_ID_KEY = 'home_organizer_active_id';
@@ -46,6 +46,7 @@ interface AuthState {
   setHomeName: (name: string) => Promise<void>;
   switchHome: (token: string) => Promise<void>;
   leaveHome: (token: string) => void;
+  rotateToken: () => Promise<string>;
   openRecoveryModal: () => void;
   recoveryModalOpen: boolean;
   closeRecoveryModal: () => void;
@@ -129,6 +130,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setHomes(removeStoredHome(targetToken));
   };
 
+  const rotateToken = async (): Promise<string> => {
+    const { token: newToken, joinUrl } = await rotateHomeToken();
+    // Replace the old token in localStorage with the new one
+    const activeId = localStorage.getItem(ACTIVE_ID_KEY) ?? '';
+    setToken(newToken);
+    setHomes(upsertStoredHome(activeId, newToken, homeName));
+    // Remove the stale old-token entry if it exists separately
+    setHomes((prev) => {
+      const deduped = prev.filter((h) => h.id === activeId || h.token === newToken);
+      localStorage.setItem(LS_KEY, JSON.stringify(deduped));
+      return deduped;
+    });
+    return joinUrl;
+  };
+
   if (!ready) {
     return (
       <div style={{ height: '100vh', position: 'relative' }}>
@@ -147,6 +163,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setHomeName,
         switchHome,
         leaveHome,
+        rotateToken,
         openRecoveryModal: () => setRecoveryModalOpen(true),
         recoveryModalOpen,
         closeRecoveryModal: () => setRecoveryModalOpen(false),

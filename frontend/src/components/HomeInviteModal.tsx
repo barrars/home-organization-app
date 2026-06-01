@@ -13,8 +13,11 @@ import {
   Divider,
   ActionIcon,
   Tooltip,
+  Center,
+  Paper,
 } from '@mantine/core';
 import { IconCopy, IconCheck, IconRefresh, IconHome2, IconEye } from '@tabler/icons-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { createHomeInvite } from '../services/api';
 import type { HomeInviteMode } from '../types';
 
@@ -50,7 +53,6 @@ const HomeInviteModal: React.FC<Props> = ({ opened, onClose, homeName }) => {
       setMode('join');
       generate('join');
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [opened]);
 
   const handleModeToggle = (newMode: HomeInviteMode) => {
@@ -76,7 +78,9 @@ const HomeInviteModal: React.FC<Props> = ({ opened, onClose, homeName }) => {
       <Stack gap="md">
         {/* Mode toggle */}
         <Stack gap={6}>
-          <Text size="sm" fw={500}>Invite type</Text>
+          <Text size="sm" fw={500}>
+            Invite type
+          </Text>
           <Group gap="sm">
             <Button
               size="xs"
@@ -100,7 +104,7 @@ const HomeInviteModal: React.FC<Props> = ({ opened, onClose, homeName }) => {
           <Text size="xs" c="dimmed">
             {mode === 'join'
               ? "The recipient's device will adopt this as their active home — full access, real-time sync."
-              : "The recipient sees your home as a guest. They can browse but it stays separate from their own home."}
+              : 'The recipient sees your home as a guest. They can browse but it stays separate from their own home.'}
           </Text>
         </Stack>
 
@@ -110,18 +114,25 @@ const HomeInviteModal: React.FC<Props> = ({ opened, onClose, homeName }) => {
         {loading && (
           <Group justify="center" py="sm">
             <Loader size="sm" />
-            <Text size="sm" c="dimmed">Generating invite…</Text>
+            <Text size="sm" c="dimmed">
+              Generating invite…
+            </Text>
           </Group>
         )}
 
-        {error && (
-          <Alert color="red">{error}</Alert>
-        )}
+        {error && <Alert color="red">{error}</Alert>}
 
         {inviteUrl && !loading && (
           <Stack gap="xs">
+            <Center>
+              <Paper withBorder p="sm" radius="md">
+                <QRCodeSVG value={inviteUrl} size={160} />
+              </Paper>
+            </Center>
             <Group justify="space-between" align="center">
-              <Badge size="xs" color="gray" variant="outline">{expiryLabel}</Badge>
+              <Badge size="xs" color="gray" variant="outline">
+                {expiryLabel}
+              </Badge>
               <Tooltip label="Generate a new link" withArrow position="top">
                 <ActionIcon
                   variant="subtle"

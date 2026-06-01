@@ -25,6 +25,8 @@ export const initAuth = () =>
     .then((r) => r.data);
 export const getShareUrl = () =>
   api.get<{ joinUrl: string }>('/auth/share').then((r) => r.data.joinUrl);
+export const rotateHomeToken = () =>
+  api.post<{ token: string; joinUrl: string }>('/auth/rotate').then((r) => r.data);
 export const switchHome = (token: string) =>
   api
     .post<{ id: string; token: string; name: string }>('/auth/switch', { token })

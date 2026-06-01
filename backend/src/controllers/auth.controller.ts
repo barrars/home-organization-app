@@ -125,6 +125,28 @@ class AuthController {
   }
 
   /**
+   * POST /api/auth/rotate
+   * Generates a fresh 64-char token for the current home, invalidating the old one.
+   * Updates the cookie and returns the new join URL. Requires auth middleware.
+   */
+  async rotateToken(req: Request, res: Response): Promise<void> {
+    try {
+      const newToken = crypto.randomBytes(32).toString('hex')
+      await req.home.updateOne({ token: newToken })
+      setCookie(res, newToken)
+      const proto = req.headers['x-forwarded-proto'] ?? req.protocol
+      const host = req.headers['x-forwarded-host'] ?? req.headers.host
+      const baseUrl = `${proto}://${host}`
+      const joinUrl = `${baseUrl}/api/auth/join?token=${newToken}`
+      logger.info('Home token rotated', { homeId: req.home._id })
+      res.json({ token: newToken, joinUrl })
+    } catch (error) {
+      logger.error('Error rotating token', { error })
+      res.status(500).json({ message: 'Failed to rotate token' })
+    }
+  }
+
+  /**
    * PATCH /api/auth/home
    * Updates mutable home properties (currently: name). Requires auth middleware.
    */

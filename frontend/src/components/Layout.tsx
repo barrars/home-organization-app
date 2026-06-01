@@ -5,6 +5,7 @@ import {
   ActionIcon,
   Box,
   Burger,
+  Button,
   Group,
   NavLink,
   Stack,
@@ -29,15 +30,14 @@ import {
   IconX,
   IconCheck,
   IconUsers,
-  IconBell,
   IconPackage,
 } from '@tabler/icons-react';
 import { useRooms } from '../contexts/RoomsContext';
 import { useAuth } from '../contexts/AuthContext';
-import { useNotifications } from '../contexts/NotificationsContext';
 import SearchBar from './SearchBar';
 import RecoveryModal from './RecoveryModal';
 import HomeInviteModal from './HomeInviteModal';
+import NotificationsPopover from './NotificationsPopover';
 
 const Layout: React.FC = () => {
   const [opened, { toggle, close }] = useDisclosure();
@@ -45,6 +45,7 @@ const Layout: React.FC = () => {
   const {
     recoveryModalOpen,
     closeRecoveryModal,
+    openRecoveryModal,
     isNew,
     homeName,
     setHomeName,
@@ -53,7 +54,6 @@ const Layout: React.FC = () => {
     switchHome,
     leaveHome,
   } = useAuth();
-  const { unreadCount } = useNotifications();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -86,27 +86,7 @@ const Layout: React.FC = () => {
               🏠 {homeName}
             </Title>
             <Group gap="xs" wrap="nowrap">
-              <Tooltip label="Notifications" withArrow position="bottom">
-                <ActionIcon
-                  variant="light"
-                  size="md"
-                  onClick={() => navigate('/notifications')}
-                  aria-label="Notifications"
-                  style={{ position: 'relative', overflow: 'visible' }}
-                >
-                  <IconBell size={16} />
-                  {unreadCount > 0 && (
-                    <Badge
-                      size="xs"
-                      color="red"
-                      circle
-                      style={{ position: 'absolute', top: -4, right: -4 }}
-                    >
-                      {unreadCount > 99 ? '99+' : unreadCount}
-                    </Badge>
-                  )}
-                </ActionIcon>
-              </Tooltip>
+              <NotificationsPopover />
               <Tooltip label="Invite to this household" withArrow position="bottom">
                 <ActionIcon
                   variant="light"
@@ -135,27 +115,7 @@ const Layout: React.FC = () => {
           </Title>
           <Group gap="xs">
             <SearchBar />
-            <Tooltip label="Notifications" withArrow position="bottom">
-              <ActionIcon
-                variant="light"
-                size="md"
-                onClick={() => navigate('/notifications')}
-                aria-label="Notifications"
-                style={{ position: 'relative', overflow: 'visible' }}
-              >
-                <IconBell size={16} />
-                {unreadCount > 0 && (
-                  <Badge
-                    size="xs"
-                    color="red"
-                    circle
-                    style={{ position: 'absolute', top: -4, right: -4 }}
-                  >
-                    {unreadCount > 99 ? '99+' : unreadCount}
-                  </Badge>
-                )}
-              </ActionIcon>
-            </Tooltip>
+            <NotificationsPopover />
             <Tooltip label="Invite to this household" withArrow position="bottom">
               <ActionIcon
                 variant="light"
@@ -338,7 +298,19 @@ const Layout: React.FC = () => {
           }}
           data-autofocus
         />
-        <Group justify="flex-end" mt="md">
+        <Group justify="space-between" mt="md">
+          <Button
+            size="xs"
+            variant="subtle"
+            color="gray"
+            leftSection={<IconShare size={14} />}
+            onClick={() => {
+              setSettingsOpen(false);
+              openRecoveryModal();
+            }}
+          >
+            Recovery key
+          </Button>
           <ActionIcon
             variant="filled"
             color="blue"

@@ -10,8 +10,17 @@ import {
   Anchor,
   Code,
   TextInput,
+  Center,
+  Paper,
 } from '@mantine/core';
-import { IconAlertTriangle, IconCopy, IconCheck, IconShare } from '@tabler/icons-react';
+import {
+  IconAlertTriangle,
+  IconCopy,
+  IconCheck,
+  IconShare,
+  IconRefresh,
+} from '@tabler/icons-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { getShareUrl } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -22,12 +31,14 @@ interface Props {
 }
 
 const RecoveryModal: React.FC<Props> = ({ opened, onClose, isNew = false }) => {
-  const { setHomeName, homeName } = useAuth();
+  const { setHomeName, homeName, rotateToken } = useAuth();
   const [joinUrl, setJoinUrl] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [nameInput, setNameInput] = useState('');
   const [nameSaved, setNameSaved] = useState(false);
+  const [rotating, setRotating] = useState(false);
+  const [confirmRotate, setConfirmRotate] = useState(false);
 
   useEffect(() => {
     if (!opened) return;
@@ -35,11 +46,26 @@ const RecoveryModal: React.FC<Props> = ({ opened, onClose, isNew = false }) => {
     setError(null);
     setNameInput('');
     setNameSaved(false);
+    setConfirmRotate(false);
     getShareUrl()
       .then(setJoinUrl)
-      .catch(() => setError('Could not load share link. Try again.'))
+      .catch(() => setError('Could not load recovery key. Try again.'))
       .finally(() => setLoading(false));
   }, [opened]);
+
+  const handleRotate = async () => {
+    setRotating(true);
+    setError(null);
+    try {
+      const newJoinUrl = await rotateToken();
+      setJoinUrl(newJoinUrl);
+      setConfirmRotate(false);
+    } catch {
+      setError('Could not regenerate link. Try again.');
+    } finally {
+      setRotating(false);
+    }
+  };
 
   const saveName = async () => {
     const trimmed = nameInput.trim();
@@ -67,7 +93,7 @@ const RecoveryModal: React.FC<Props> = ({ opened, onClose, isNew = false }) => {
       title={
         <Group gap="xs">
           <IconShare size={18} />
-          <Text fw={600}>{isNew ? 'Welcome! Save your access link' : 'Share / Recovery link'}</Text>
+          <Text fw={600}>{isNew ? 'Welcome! Save your recovery key' : 'Recovery key'}</Text>
         </Group>
       }
       centered
@@ -95,18 +121,23 @@ const RecoveryModal: React.FC<Props> = ({ opened, onClose, isNew = false }) => {
             <Alert
               icon={<IconAlertTriangle size={16} />}
               color="orange"
-              title="Important — save this link"
+              title="Important — save your recovery key"
             >
-              This link is the only way to recover access if you clear your cookies, or to log in on
-              another device. Save it somewhere safe — in a note, email, or text message.
+              This is your master access key. It's the only way to recover your home if you clear
+              your cookies, or to sign in on another device. Save it somewhere safe — a note, email,
+              or password manager. Do not share it publicly.
             </Alert>
           </>
         )}
 
         {!isNew && (
           <Text size="sm" c="dimmed">
-            Share this link with a household member, or open it on another device to connect it to
-            your home.
+            Use this key to recover access on a new device, or if your cookies are cleared. To add a
+            household member, use the{' '}
+            <Text span fw={500} c="blue">
+              Invite
+            </Text>{' '}
+            button instead — those links expire and are safer to share.
           </Text>
         )}
 
@@ -124,6 +155,11 @@ const RecoveryModal: React.FC<Props> = ({ opened, onClose, isNew = false }) => {
 
         {joinUrl && (
           <>
+            <Center>
+              <Paper withBorder p="sm" radius="md">
+                <QRCodeSVG value={joinUrl} size={180} />
+              </Paper>
+            </Center>
             <Code block style={{ wordBreak: 'break-all', fontSize: 12, userSelect: 'all' }}>
               {joinUrl}
             </Code>
@@ -141,17 +177,47 @@ const RecoveryModal: React.FC<Props> = ({ opened, onClose, isNew = false }) => {
                 )}
               </CopyButton>
               <Anchor
-                href={`mailto:?subject=Home+Organizer+Access&body=${encodeURIComponent(joinUrl)}`}
+                href={`mailto:?subject=Home+Organizer+Recovery+Key&body=${encodeURIComponent('Save this recovery key somewhere safe — do not share it publicly.\n\n' + joinUrl)}`}
                 size="sm"
               >
                 Send via email
               </Anchor>
             </Group>
+
+            {confirmRotate ? (
+              <Alert
+                icon={<IconAlertTriangle size={16} />}
+                color="orange"
+                title="This will invalidate the old recovery key"
+              >
+                Anyone using the old link will lose access. Only their active cookie-based sessions
+                will continue to work.
+                <Group mt="xs" gap="xs">
+                  <Button size="xs" color="orange" loading={rotating} onClick={handleRotate}>
+                    Yes, regenerate
+                  </Button>
+                  <Button size="xs" variant="subtle" onClick={() => setConfirmRotate(false)}>
+                    Cancel
+                  </Button>
+                </Group>
+              </Alert>
+            ) : (
+              <Button
+                size="xs"
+                variant="subtle"
+                color="gray"
+                leftSection={<IconRefresh size={14} />}
+                onClick={() => setConfirmRotate(true)}
+              >
+                Regenerate key (invalidates old one)
+              </Button>
+            )}
           </>
         )}
 
         <Text size="xs" c="dimmed">
-          Anyone with this link can access your home organizer. Do not share publicly.
+          This key grants permanent full access. Treat it like a password — store it safely and
+          don't share it publicly.
         </Text>
       </Stack>
     </Modal>

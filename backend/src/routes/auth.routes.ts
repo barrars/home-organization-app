@@ -33,6 +33,7 @@ router.post('/init', initLimiter, authController.init.bind(authController))
 router.get('/join', joinLimiter, authController.join.bind(authController))
 router.post('/switch', switchLimiter, authController.switch.bind(authController))
 router.get('/share', authMiddleware, authController.share.bind(authController))
+router.post('/rotate', authMiddleware, authController.rotateToken.bind(authController))
 router.patch('/home', authMiddleware, authController.patchHome.bind(authController))
 
 export default router
