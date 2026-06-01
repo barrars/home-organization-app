@@ -14,6 +14,8 @@ import {
   Anchor,
   Divider,
   SimpleGrid,
+  Image,
+  Box,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconPlus, IconDoor, IconTrash, IconEdit } from '@tabler/icons-react';
@@ -83,8 +85,8 @@ const Dashboard: React.FC = () => {
 
   return (
     <>
-      <Group justify="space-between" mb="xl">
-        <div>
+      <Group justify="center" mb="xl">
+        <div style={{ textAlign: 'center' }}>
           <Title order={2}>Your Rooms</Title>
           <Text c="dimmed" size="sm">
             {loading ? '…' : `${rooms.length} room${rooms.length !== 1 ? 's' : ''}`}
@@ -114,13 +116,13 @@ const Dashboard: React.FC = () => {
       ) : (
         <Grid>
           {rooms.map((room) => (
-            <Grid.Col key={room._id} span={{ base: 12, sm: 6, md: 4 }}>
+            <Grid.Col key={room._id} span={{ base: 12, sm: 6, md: 4 }} style={{ display: 'flex' }}>
               <Card
                 shadow="sm"
                 padding="lg"
                 radius="md"
                 withBorder
-                style={{ cursor: 'pointer' }}
+                style={{ cursor: 'pointer', flex: 1, display: 'flex', flexDirection: 'column' }}
                 className={newRoomIds.has(room._id) ? 'item-enter' : undefined}
                 onClick={() => navigate(`/rooms/${room._id}`)}
               >
@@ -153,7 +155,7 @@ const Dashboard: React.FC = () => {
                     </ActionIcon>
                   </Group>
                 </Group>
-                <Group justify="space-between" align="flex-end">
+                <Group justify="space-between" align="flex-end" style={{ marginTop: 'auto' }}>
                   {room.description && (
                     <Text size="sm" c="dimmed" lineClamp={2} style={{ flex: 1 }}>
                       {room.description}
@@ -184,7 +186,7 @@ const Dashboard: React.FC = () => {
       />
 
       {/* ── Recently Added ────────────────────────────── */}
-      <Divider mt="xl" mb="md" label="Recently Added" labelPosition="left" />
+      <Divider mt="xl" mb="md" label="Recently Added Items" labelPosition="center" />
       {loadingExtras ? (
         <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="sm">
           {Array.from({ length: 3 }).map((_, i) => (
@@ -208,6 +210,48 @@ const Dashboard: React.FC = () => {
                 style={{ cursor: 'pointer' }}
                 onClick={() => navigate(`/rooms/${item.roomId}`)}
               >
+                {/* Thumbnail strip — up to 3 images */}
+                {(() => {
+                  const imgs = Array.isArray(item.imageUrls) && item.imageUrls.length > 0
+                    ? item.imageUrls.filter(Boolean)
+                    : item.imageUrl?.trim()
+                    ? [item.imageUrl]
+                    : [];
+                  return imgs.length > 0 ? (
+                    <Box mb={6} style={{ display: 'flex', gap: 4 }}>
+                      {imgs.slice(0, 3).map((url, idx) => (
+                        <Box
+                          key={idx}
+                          style={{
+                            flex: 1,
+                            height: 56,
+                            borderRadius: 6,
+                            overflow: 'hidden',
+                            background: 'var(--mantine-color-gray-1)',
+                            position: 'relative',
+                          }}
+                        >
+                          <Image src={url} h={56} fit="cover" style={{ display: 'block' }} />
+                          {/* "+N more" overlay on the last visible thumb if there are more */}
+                          {idx === 2 && imgs.length > 3 && (
+                            <Box
+                              style={{
+                                position: 'absolute',
+                                inset: 0,
+                                background: 'rgba(0,0,0,0.52)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                              }}
+                            >
+                              <Text size="xs" c="white" fw={600}>+{imgs.length - 3}</Text>
+                            </Box>
+                          )}
+                        </Box>
+                      ))}
+                    </Box>
+                  ) : null;
+                })()}
                 <Group justify="space-between" wrap="nowrap" mb={2}>
                   <Text size="sm" fw={500} lineClamp={1}>
                     {item.name}
@@ -241,7 +285,7 @@ const Dashboard: React.FC = () => {
       {/* ── Tags in Use ───────────────────────────────── */}
       {!loadingExtras && tags.length > 0 && (
         <>
-          <Divider mt="xl" mb="md" label="Tags in Use" labelPosition="left" />
+          <Divider mt="xl" mb="md" label="Tags in Use" labelPosition="center" />
           <Group gap="xs">
             {tags.map((tag) => (
               <Badge

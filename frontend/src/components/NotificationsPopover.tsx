@@ -14,7 +14,7 @@ import {
   Tooltip,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { IconBell, IconCheck, IconTrash, IconArrowRight } from '@tabler/icons-react';
+import { IconBell, IconCheck, IconTrash } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
 import {
   getNotifications,
@@ -175,7 +175,10 @@ const NotificationsPopover: React.FC = () => {
                         background: n.read ? undefined : 'var(--mantine-color-blue-0)',
                         borderLeft: n.read ? '3px solid transparent' : '3px solid var(--mantine-color-blue-5)',
                         cursor: dest ? 'pointer' : 'default',
+                        transition: 'background 120ms ease',
                       }}
+                      onMouseEnter={(e) => { if (dest) (e.currentTarget as HTMLElement).style.background = n.read ? 'var(--mantine-color-gray-0)' : 'var(--mantine-color-blue-1)'; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = n.read ? '' : 'var(--mantine-color-blue-0)'; }}
                     >
                       <Group justify="space-between" wrap="nowrap" gap="xs">
                         <div style={{ flex: 1, minWidth: 0 }}>
@@ -188,36 +191,29 @@ const NotificationsPopover: React.FC = () => {
                         </div>
                         <Group gap={2} wrap="nowrap" style={{ flexShrink: 0 }}>
                           {!n.read && (
+                            <Tooltip label="Mark as read" withArrow position="top" openDelay={300}>
+                              <ActionIcon
+                                size="xs"
+                                variant="subtle"
+                                color="blue"
+                                onClick={(e) => { e.stopPropagation(); handleMarkRead(n._id); }}
+                                aria-label="Mark as read"
+                              >
+                                <IconCheck size={12} />
+                              </ActionIcon>
+                            </Tooltip>
+                          )}
+                          <Tooltip label="Delete" withArrow position="top" openDelay={300}>
                             <ActionIcon
                               size="xs"
                               variant="subtle"
-                              color="blue"
-                              onClick={(e) => { e.stopPropagation(); handleMarkRead(n._id); }}
-                              aria-label="Mark as read"
+                              color="red"
+                              onClick={(e) => { e.stopPropagation(); handleDelete(n._id); }}
+                              aria-label="Delete"
                             >
-                              <IconCheck size={12} />
+                              <IconTrash size={12} />
                             </ActionIcon>
-                          )}
-                          {dest && (
-                            <ActionIcon
-                              size="xs"
-                              variant="subtle"
-                              color="gray"
-                              onClick={(e) => { e.stopPropagation(); handleNavigate(dest); }}
-                              aria-label="Go to origin"
-                            >
-                              <IconArrowRight size={12} />
-                            </ActionIcon>
-                          )}
-                          <ActionIcon
-                            size="xs"
-                            variant="subtle"
-                            color="red"
-                            onClick={(e) => { e.stopPropagation(); handleDelete(n._id); }}
-                            aria-label="Delete"
-                          >
-                            <IconTrash size={12} />
-                          </ActionIcon>
+                          </Tooltip>
                         </Group>
                       </Group>
                     </UnstyledButton>
