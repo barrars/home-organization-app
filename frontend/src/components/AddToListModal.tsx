@@ -13,8 +13,9 @@ import {
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconPlus } from '@tabler/icons-react';
-import { getLists, createList, addItemToList } from '../services/api';
+import { getLists, createList, addItemToList, getListsForItem } from '../services/api';
 import type { ItemList } from '../types';
+import { IconCheck } from '@tabler/icons-react';
 
 interface Props {
   opened: boolean;
@@ -26,6 +27,7 @@ interface Props {
 const AddToListModal: React.FC<Props> = ({ opened, onClose, itemId, itemName }) => {
   const [lists, setLists] = useState<ItemList[]>([]);
   const [loading, setLoading] = useState(false);
+  const [memberListIds, setMemberListIds] = useState<Set<string>>(new Set());
 
   // Select existing list
   const [selectedListId, setSelectedListId] = useState<string | null>(null);
@@ -41,14 +43,15 @@ const AddToListModal: React.FC<Props> = ({ opened, onClose, itemId, itemName }) 
   const loadLists = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await getLists();
-      setLists(data);
+      const [allLists, memberships] = await Promise.all([getLists(), getListsForItem(itemId)]);
+      setLists(allLists);
+      setMemberListIds(new Set(memberships.map((m) => m.list._id)));
     } catch {
       notifications.show({ title: 'Error', message: 'Could not load lists.', color: 'red' });
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [itemId]);
 
   useEffect(() => {
     if (opened) {
@@ -57,6 +60,7 @@ const AddToListModal: React.FC<Props> = ({ opened, onClose, itemId, itemName }) 
       setCreating(false);
       setNewName('');
       setNewDesc('');
+      setMemberListIds(new Set());
       loadLists();
     }
   }, [opened, loadLists]);
@@ -92,9 +96,7 @@ const AddToListModal: React.FC<Props> = ({ opened, onClose, itemId, itemName }) 
       onClose();
     } catch (err: unknown) {
       const status = (err as { response?: { status?: number } })?.response?.status;
-      if (status === 409) {
-        notifications.show({ title: 'Already on list', message: `"${itemName}" is already on that list.`, color: 'yellow' });
-      } else {
+      if (status !== 409) {
         notifications.show({ title: 'Error', message: 'Could not add item to list.', color: 'red' });
       }
     } finally {
@@ -102,7 +104,11 @@ const AddToListModal: React.FC<Props> = ({ opened, onClose, itemId, itemName }) 
     }
   };
 
-  const listOptions = lists.map((l) => ({ value: l._id, label: l.name }));
+  const listOptions = lists.map((l) => ({
+    value: l._id,
+    label: l.name,
+    disabled: memberListIds.has(l._id),
+  }));
 
   return (
     <Modal
@@ -130,6 +136,15 @@ const AddToListModal: React.FC<Props> = ({ opened, onClose, itemId, itemName }) 
                 clearable
                 nothingFoundMessage={lists.length === 0 ? 'No lists yet — create one below' : 'No match'}
                 data-autofocus
+                renderOption={({ option }) => {
+                  const already = memberListIds.has(option.value);
+                  return (
+                    <Group justify="space-between" w="100%" wrap="nowrap">
+                      <Text size="sm" c={already ? 'dimmed' : undefined}>{option.label}</Text>
+                      {already && <IconCheck size={14} color="var(--mantine-color-teal-6)" />}
+                    </Group>
+                  );
+                }}
               />
               <Button
                 variant="subtle"

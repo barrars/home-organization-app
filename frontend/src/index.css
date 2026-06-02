@@ -25,6 +25,17 @@
   animation: itemFadeIn 0.4s ease-out both;
 }
 
+@keyframes highlightGlow {
+  0%   { box-shadow: 0 0 0 0px rgba(32, 201, 151, 0); }
+  20%  { box-shadow: 0 0 0 5px rgba(32, 201, 151, 0.55); }
+  60%  { box-shadow: 0 0 0 5px rgba(32, 201, 151, 0.45); }
+  100% { box-shadow: 0 0 0 0px rgba(32, 201, 151, 0); }
+}
+
+.item-highlight {
+  animation: highlightGlow 2.2s ease-out both;
+}
+
 /* ── Card carousel controls ────────────────────────────────────── */
 /* Dark pill buttons so arrows are visible over any image colour.  */
 .card-carousel-control {

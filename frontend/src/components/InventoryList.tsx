@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   ActionIcon,
+  Anchor,
   Badge,
   Card,
   Center,
@@ -142,9 +144,16 @@ const InventoryList: React.FC<Props> = ({ refresh }) => {
               </Badge>
             </Group>
 
-            <Text size="xs" c="dimmed" mb={6}>
-              {roomName(item.roomId)}
-            </Text>
+            <Anchor
+                size="xs"
+                c="dimmed"
+                mb={6}
+                component={Link}
+                to={`/rooms/${item.roomId}`}
+                style={{ display: 'block' }}
+              >
+                {roomName(item.roomId)}
+              </Anchor>
 
             {item.categories.length > 0 && (
               <Group gap={4} mb={4} wrap="wrap">

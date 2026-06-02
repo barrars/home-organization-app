@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Title,
   Text,
@@ -62,6 +62,7 @@ interface ItemPhotoAreaProps {
   uploadingFor: string | null;
   onOpenLightbox: (urls: string[], idx: number) => void;
   onOpenPhotoPicker: (itemId: string) => void;
+  onPastePhoto: (itemId: string, files: File[]) => void;
 }
 
 const ItemPhotoArea: React.FC<ItemPhotoAreaProps> = ({
@@ -69,25 +70,124 @@ const ItemPhotoArea: React.FC<ItemPhotoAreaProps> = ({
   uploadingFor,
   onOpenLightbox,
   onOpenPhotoPicker,
+  onPastePhoto,
 }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const images = getItemImages(item);
 
   if (images.length === 0) {
+    const attemptClipboardPaste = async () => {
+      try {
+        const clipboardItems = await navigator.clipboard.read();
+        const files: File[] = [];
+        for (const ci of clipboardItems) {
+          for (const type of ci.types) {
+            if (type.startsWith('image/')) {
+              const blob = await ci.getType(type);
+              files.push(new File([blob], `paste.${type.split('/')[1]}`, { type }));
+            }
+          }
+        }
+        if (files.length > 0) {
+          onPastePhoto(item._id, files);
+        } else {
+          notifications.show({ message: 'No image in clipboard', color: 'yellow' });
+        }
+      } catch {
+        notifications.show({ message: 'Could not read clipboard — use Ctrl+V or drag a photo here instead', color: 'orange' });
+      }
+    };
+
+    // Desktop: single click → file picker (after short delay to yield to double-click)
+    const handleClick = () => {
+      if (clickTimerRef.current) return; // already waiting — second click coming
+      clickTimerRef.current = setTimeout(() => {
+        clickTimerRef.current = null;
+        onOpenPhotoPicker(item._id);
+      }, 220);
+    };
+
+    // Desktop: double click → clipboard paste
+    const handleDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      if (clickTimerRef.current) {
+        clearTimeout(clickTimerRef.current);
+        clickTimerRef.current = null;
+      }
+      attemptClipboardPaste();
+    };
+
+    // Mobile: long press → clipboard paste
+    const handleTouchStart = () => {
+      longPressTimerRef.current = setTimeout(() => {
+        longPressTimerRef.current = null;
+        attemptClipboardPaste();
+      }, 600);
+    };
+
+    const cancelLongPress = () => {
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+        longPressTimerRef.current = null;
+      }
+    };
+
+    const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
+      const files = Array.from(e.clipboardData.items)
+        .filter((it) => it.kind === 'file' && it.type.startsWith('image/'))
+        .map((it) => it.getAsFile())
+        .filter((f): f is File => f !== null);
+      if (files.length > 0) {
+        e.preventDefault();
+        onPastePhoto(item._id, files);
+      }
+    };
+
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+      if (Array.from(e.dataTransfer.items).some((it) => it.kind === 'file' && it.type.startsWith('image/'))) {
+        e.preventDefault();
+        setDragging(true);
+      }
+    };
+
+    const handleDragLeave = () => setDragging(false);
+
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      setDragging(false);
+      const files = Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith('image/'));
+      if (files.length > 0) onPastePhoto(item._id, files);
+    };
+
     return (
       <Box
         mb="sm"
         h={72}
-        onClick={() => onOpenPhotoPicker(item._id)}
+        tabIndex={0}
+        onClick={handleClick}
+        onDoubleClick={handleDoubleClick}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={cancelLongPress}
+        onTouchMove={cancelLongPress}
+        onPaste={handlePaste}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
         style={{
-          border: '2px dashed var(--mantine-color-gray-3)',
+          border: `2px dashed ${dragging ? 'var(--mantine-color-teal-5)' : 'var(--mantine-color-gray-3)'}`,
           borderRadius: 8,
+          background: dragging ? 'var(--mantine-color-teal-0)' : undefined,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           gap: 6,
           cursor: 'pointer',
-          color: 'var(--mantine-color-dimmed)',
+          color: dragging ? 'var(--mantine-color-teal-7)' : 'var(--mantine-color-dimmed)',
+          outline: 'none',
+          transition: 'border-color 0.15s, background 0.15s, color 0.15s',
         }}
       >
         {uploadingFor === item._id ? (
@@ -95,7 +195,7 @@ const ItemPhotoArea: React.FC<ItemPhotoAreaProps> = ({
         ) : (
           <>
             <IconPhoto size={18} />
-            <Text size="xs">Add Photo</Text>
+            <Text size="xs">{dragging ? 'Drop to upload' : 'Add Photo · Paste'}</Text>
           </>
         )}
       </Box>
@@ -222,6 +322,22 @@ const RoomPage: React.FC = () => {
     loadItems();
   }, [loadItems]);
 
+  // Scroll to + glow the highlighted item once items finish loading
+  const [searchParams] = useSearchParams();
+  const highlightId = searchParams.get('highlight');
+  useEffect(() => {
+    if (!highlightId || loading || items.length === 0) return;
+    const el = document.getElementById(`item-${highlightId}`);
+    if (!el) return;
+    // Small delay so the grid has painted
+    const t = setTimeout(() => {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.classList.add('item-highlight');
+      el.addEventListener('animationend', () => el.classList.remove('item-highlight'), { once: true });
+    }, 150);
+    return () => clearTimeout(t);
+  }, [highlightId, loading, items]);
+
   // Silent background refresh driven by socket events from other tabs/devices.
   // Deliberately omits setLoading(true) so the existing list stays visible
   // while new data arrives — no skeleton flash for remote-triggered updates.
@@ -320,16 +436,11 @@ const RoomPage: React.FC = () => {
     photoInputRef.current?.click();
   };
 
-  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    const itemId = activeItemIdRef.current;
-    if (!files || files.length === 0 || !itemId) return;
-
-    const fileArray = Array.from(files);
+  const uploadFilesForItem = async (itemId: string, fileArray: File[]) => {
     const currentItem = items.find((i) => i._id === itemId);
     const originalImages = currentItem ? getItemImages(currentItem) : [];
 
-    // Optimistically show the local file(s) immediately — no spinner on the card image.
+    // Optimistically show the local file(s) immediately
     const blobUrls = fileArray.map((f) => URL.createObjectURL(f));
     setItems((prev) =>
       prev.map((i) =>
@@ -357,7 +468,6 @@ const RoomPage: React.FC = () => {
         color: 'green',
       });
     } catch {
-      // Roll back to original images on failure
       setItems((prev) =>
         prev.map((i) =>
           i._id === itemId
@@ -369,9 +479,20 @@ const RoomPage: React.FC = () => {
     } finally {
       blobUrls.forEach((u) => URL.revokeObjectURL(u));
       setUploadingFor(null);
-      activeItemIdRef.current = null;
-      if (photoInputRef.current) photoInputRef.current.value = '';
     }
+  };
+
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    const itemId = activeItemIdRef.current;
+    if (!files || files.length === 0 || !itemId) return;
+    activeItemIdRef.current = null;
+    if (photoInputRef.current) photoInputRef.current.value = '';
+    await uploadFilesForItem(itemId, Array.from(files));
+  };
+
+  const handlePastePhoto = (itemId: string, files: File[]) => {
+    uploadFilesForItem(itemId, files);
   };
 
   const allCategories = useMemo(() => {
@@ -713,6 +834,7 @@ const RoomPage: React.FC = () => {
           {filteredItems.map((item) => (
             <Card
               key={item._id}
+              id={`item-${item._id}`}
               shadow="xs"
               padding="md"
               radius="md"
@@ -725,6 +847,7 @@ const RoomPage: React.FC = () => {
                 uploadingFor={uploadingFor}
                 onOpenLightbox={(urls, idx) => setLightbox({ urls, initialIndex: idx })}
                 onOpenPhotoPicker={openPhotoPicker}
+                onPastePhoto={handlePastePhoto}
               />
 
               <Group justify="space-between" mb={6} wrap="nowrap">
