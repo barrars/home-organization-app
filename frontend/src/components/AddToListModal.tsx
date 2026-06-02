@@ -72,7 +72,11 @@ const AddToListModal: React.FC<Props> = ({ opened, onClose, itemId, itemName }) 
 
       if (creating) {
         if (!newName.trim()) {
-          notifications.show({ title: 'Validation', message: 'List name is required.', color: 'yellow' });
+          notifications.show({
+            title: 'Validation',
+            message: 'List name is required.',
+            color: 'yellow',
+          });
           setSaving(false);
           return;
         }
@@ -81,13 +85,19 @@ const AddToListModal: React.FC<Props> = ({ opened, onClose, itemId, itemName }) 
       }
 
       if (!targetListId) {
-        notifications.show({ title: 'Validation', message: 'Please select or create a list.', color: 'yellow' });
+        notifications.show({
+          title: 'Validation',
+          message: 'Please select or create a list.',
+          color: 'yellow',
+        });
         setSaving(false);
         return;
       }
 
       await addItemToList(targetListId, itemId, note.trim());
-      const listName = creating ? newName.trim() : (lists.find((l) => l._id === targetListId)?.name ?? 'list');
+      const listName = creating
+        ? newName.trim()
+        : (lists.find((l) => l._id === targetListId)?.name ?? 'list');
       notifications.show({
         title: 'Added to list',
         message: `"${itemName}" added to "${listName}".`,
@@ -97,7 +107,11 @@ const AddToListModal: React.FC<Props> = ({ opened, onClose, itemId, itemName }) 
     } catch (err: unknown) {
       const status = (err as { response?: { status?: number } })?.response?.status;
       if (status !== 409) {
-        notifications.show({ title: 'Error', message: 'Could not add item to list.', color: 'red' });
+        notifications.show({
+          title: 'Error',
+          message: 'Could not add item to list.',
+          color: 'red',
+        });
       }
     } finally {
       setSaving(false);
@@ -134,13 +148,17 @@ const AddToListModal: React.FC<Props> = ({ opened, onClose, itemId, itemName }) 
                 onChange={setSelectedListId}
                 searchable
                 clearable
-                nothingFoundMessage={lists.length === 0 ? 'No lists yet — create one below' : 'No match'}
+                nothingFoundMessage={
+                  lists.length === 0 ? 'No lists yet — create one below' : 'No match'
+                }
                 data-autofocus
                 renderOption={({ option }) => {
                   const already = memberListIds.has(option.value);
                   return (
                     <Group justify="space-between" w="100%" wrap="nowrap">
-                      <Text size="sm" c={already ? 'dimmed' : undefined}>{option.label}</Text>
+                      <Text size="sm" c={already ? 'dimmed' : undefined}>
+                        {option.label}
+                      </Text>
                       {already && <IconCheck size={14} color="var(--mantine-color-teal-6)" />}
                     </Group>
                   );
@@ -150,7 +168,10 @@ const AddToListModal: React.FC<Props> = ({ opened, onClose, itemId, itemName }) 
                 variant="subtle"
                 size="xs"
                 leftSection={<IconPlus size={13} />}
-                onClick={() => { setCreating(true); setSelectedListId(null); }}
+                onClick={() => {
+                  setCreating(true);
+                  setSelectedListId(null);
+                }}
               >
                 Create a new list
               </Button>
@@ -177,7 +198,11 @@ const AddToListModal: React.FC<Props> = ({ opened, onClose, itemId, itemName }) 
               <Button
                 variant="subtle"
                 size="xs"
-                onClick={() => { setCreating(false); setNewName(''); setNewDesc(''); }}
+                onClick={() => {
+                  setCreating(false);
+                  setNewName('');
+                  setNewDesc('');
+                }}
               >
                 ← Pick an existing list instead
               </Button>
