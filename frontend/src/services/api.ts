@@ -14,6 +14,9 @@ import type {
   ResolvedHomeInvite,
   HomeInviteClaim,
   HomeInviteMode,
+  ItemList,
+  ItemListDetail,
+  ItemListMembership,
 } from '../types';
 
 const api = axios.create({ baseURL: '/api', withCredentials: true });
@@ -178,3 +181,20 @@ export const resolveHomeInvite = (token: string) =>
   axios.get<ResolvedHomeInvite>(`/api/public/invite/${token}`).then((r) => r.data);
 export const claimHomeInvite = (token: string) =>
   axios.post<HomeInviteClaim>(`/api/public/invite/${token}/claim`).then((r) => r.data);
+
+// Lists
+export const getLists = () => api.get<ItemList[]>('/lists').then((r) => r.data);
+export const createList = (data: { name: string; description?: string }) =>
+  api.post<ItemList>('/lists', data).then((r) => r.data);
+export const getList = (id: string) => api.get<ItemListDetail>(`/lists/${id}`).then((r) => r.data);
+export const updateList = (id: string, data: { name?: string; description?: string }) =>
+  api.patch<ItemList>(`/lists/${id}`, data).then((r) => r.data);
+export const deleteList = (id: string) => api.delete(`/lists/${id}`);
+export const addItemToList = (listId: string, itemId: string, note?: string) =>
+  api.post(`/lists/${listId}/items`, { itemId, note: note ?? '' });
+export const removeItemFromList = (listId: string, itemId: string) =>
+  api.delete(`/lists/${listId}/items/${itemId}`);
+export const updateListItemNote = (listId: string, itemId: string, note: string) =>
+  api.patch(`/lists/${listId}/items/${itemId}`, { note });
+export const getListsForItem = (itemId: string) =>
+  api.get<ItemListMembership[]>(`/lists/for-item/${itemId}`).then((r) => r.data);

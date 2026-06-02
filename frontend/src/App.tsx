@@ -14,6 +14,8 @@ import SharedWithMe from './pages/SharedWithMe';
 import Notifications from './pages/Notifications';
 import SharedView from './pages/SharedView';
 import InvitePage from './pages/InvitePage';
+import Lists from './pages/Lists';
+import ListPage from './pages/ListPage';
 
 const App: React.FC = () => (
   <BrowserRouter>
@@ -33,6 +35,8 @@ const App: React.FC = () => (
               <Route path="search" element={<SearchResults />} />
               <Route path="shared-with-me" element={<SharedWithMe />} />
               <Route path="notifications" element={<Notifications />} />
+              <Route path="lists" element={<Lists />} />
+              <Route path="lists/:id" element={<ListPage />} />
             </Route>
           </Routes>
         </NotificationsProvider>

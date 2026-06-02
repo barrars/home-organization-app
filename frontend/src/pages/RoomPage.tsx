@@ -36,6 +36,7 @@ import {
   IconArrowRight,
   IconShare,
   IconX,
+  IconList,
 } from '@tabler/icons-react';
 import { getItems, deleteItem, uploadImage, updateItem } from '../services/api';
 import { getSocket } from '../services/socket';
@@ -43,6 +44,7 @@ import { useRooms } from '../contexts/RoomsContext';
 import AddItemModal from '../components/AddItemModal';
 import CreateRoomModal from '../components/CreateRoomModal';
 import ShareLinkModal from '../components/ShareLinkModal';
+import AddToListModal from '../components/AddToListModal';
 import type { Item } from '../types';
 import { RoomIcon } from '../utils/roomIcons';
 
@@ -190,6 +192,7 @@ const RoomPage: React.FC = () => {
     id: string;
     name: string;
   } | null>(null);
+  const [addToListItem, setAddToListItem] = useState<Item | null>(null);
 
   // Always-current ref so backgroundRefresh can diff without a stale closure
   const itemsRef = useRef<Item[]>([]);
@@ -729,6 +732,16 @@ const RoomPage: React.FC = () => {
                   {item.name}
                 </Text>
                 <Group gap={4} wrap="nowrap">
+                  <Tooltip label="Add to a list">
+                    <ActionIcon
+                      color="teal"
+                      variant="subtle"
+                      size="sm"
+                      onClick={() => setAddToListItem(item)}
+                    >
+                      <IconList size={14} />
+                    </ActionIcon>
+                  </Tooltip>
                   <Tooltip label="Edit item">
                     <ActionIcon
                       color="blue"
@@ -973,6 +986,15 @@ const RoomPage: React.FC = () => {
           targetType={shareLinkTarget.type}
           targetId={shareLinkTarget.id}
           targetName={shareLinkTarget.name}
+        />
+      )}
+
+      {addToListItem && (
+        <AddToListModal
+          opened={!!addToListItem}
+          onClose={() => setAddToListItem(null)}
+          itemId={addToListItem._id}
+          itemName={addToListItem.name}
         />
       )}
     </>

@@ -88,6 +88,7 @@ const HomeInviteModal: React.FC<Props> = ({ opened, onClose, homeName }) => {
               color="blue"
               leftSection={<IconHome2 size={14} />}
               onClick={() => handleModeToggle('join')}
+              disabled={loading}
             >
               Join as primary home
             </Button>
@@ -97,6 +98,7 @@ const HomeInviteModal: React.FC<Props> = ({ opened, onClose, homeName }) => {
               color="violet"
               leftSection={<IconEye size={14} />}
               onClick={() => handleModeToggle('view')}
+              disabled={loading}
             >
               View only (guest)
             </Button>

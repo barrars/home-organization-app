@@ -19,6 +19,7 @@ import shareRouter from './routes/share.routes'
 import shareLinkRouter from './routes/shareLink.routes'
 import notificationRouter from './routes/notification.routes'
 import homeInviteRouter from './routes/homeInvite.routes'
+import listRouter from './routes/list.routes'
 import shareLinkController from './controllers/shareLink.controller'
 import homeInviteController from './controllers/homeInvite.controller'
 import { authMiddleware } from './middleware/authMiddleware'
@@ -88,6 +89,7 @@ app.use('/api/shares', authMiddleware, shareRouter)
 app.use('/api/share-links', authMiddleware, shareLinkRouter)
 app.use('/api/notifications', authMiddleware, notificationRouter)
 app.use('/api/home-invites', authMiddleware, homeInviteRouter)
+app.use('/api/lists', authMiddleware, listRouter)
 
 // Public resolvers — no auth
 app.get('/api/public/share/:token', shareLinkController.resolve.bind(shareLinkController))

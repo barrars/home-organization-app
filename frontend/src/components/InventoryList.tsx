@@ -13,10 +13,11 @@ import {
   Tooltip,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconCopy, IconEdit, IconPackage, IconTrash } from '@tabler/icons-react';
+import { IconCopy, IconEdit, IconList, IconPackage, IconTrash } from '@tabler/icons-react';
 import { deleteItem, getItems } from '../services/api';
 import { useRooms } from '../contexts/RoomsContext';
 import AddItemModal from './AddItemModal';
+import AddToListModal from './AddToListModal';
 import type { Item } from '../types';
 
 interface Props {
@@ -32,6 +33,7 @@ const InventoryList: React.FC<Props> = ({ refresh }) => {
   const [editItem, setEditItem] = useState<Item | null>(null);
   const [templateItem, setTemplateItem] = useState<Item | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [addToListItem, setAddToListItem] = useState<Item | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -171,6 +173,11 @@ const InventoryList: React.FC<Props> = ({ refresh }) => {
             )}
 
             <Group gap={4} justify="flex-end" mt="auto">
+              <Tooltip label="Add to List" withArrow>
+                <ActionIcon size="sm" variant="subtle" color="teal" onClick={() => setAddToListItem(item)}>
+                  <IconList size={14} />
+                </ActionIcon>
+              </Tooltip>
               <Tooltip label="Duplicate" withArrow>
                 <ActionIcon size="sm" variant="subtle" onClick={() => openDuplicate(item)}>
                   <IconCopy size={14} />
@@ -207,6 +214,15 @@ const InventoryList: React.FC<Props> = ({ refresh }) => {
             closeModal();
             load();
           }}
+        />
+      )}
+
+      {addToListItem && (
+        <AddToListModal
+          opened={!!addToListItem}
+          onClose={() => setAddToListItem(null)}
+          itemId={addToListItem._id}
+          itemName={addToListItem.name}
         />
       )}
     </Stack>

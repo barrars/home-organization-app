@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Badge,
   Box,
+  Button,
   Card,
   Center,
   Divider,
@@ -14,8 +15,9 @@ import {
   Text,
   Title,
 } from '@mantine/core';
-import { IconSearch } from '@tabler/icons-react';
+import { IconList, IconSearch } from '@tabler/icons-react';
 import { searchItems } from '../services/api';
+import AddToListModal from '../components/AddToListModal';
 import type { SearchResultItem } from '../types';
 
 const getPrimaryImage = (item: SearchResultItem): string =>
@@ -29,6 +31,8 @@ const SearchResults: React.FC = () => {
   const [results, setResults] = useState<SearchResultItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+
+  const [addToListItem, setAddToListItem] = useState<SearchResultItem | null>(null);
 
   useEffect(() => {
     if (!q.trim()) return;
@@ -133,9 +137,30 @@ const SearchResults: React.FC = () => {
                   </Text>
                 </>
               )}
+
+              <Divider my="xs" />
+              <Button
+                size="xs"
+                variant="light"
+                color="teal"
+                leftSection={<IconList size={13} />}
+                onClick={(e) => { e.stopPropagation(); setAddToListItem(item); }}
+                fullWidth
+              >
+                Add to List
+              </Button>
             </Card>
           ))}
         </SimpleGrid>
+      )}
+
+      {addToListItem && (
+        <AddToListModal
+          opened={!!addToListItem}
+          onClose={() => setAddToListItem(null)}
+          itemId={addToListItem._id}
+          itemName={addToListItem.name}
+        />
       )}
     </Box>
   );

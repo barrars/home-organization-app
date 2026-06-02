@@ -31,6 +31,7 @@ import {
   IconCheck,
   IconUsers,
   IconPackage,
+  IconList,
 } from '@tabler/icons-react';
 import { useRooms } from '../contexts/RoomsContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -223,6 +224,16 @@ const Layout: React.FC = () => {
             active={location.pathname === '/inventory'}
             onClick={close}
             mb="xs"
+          />
+          <NavLink
+            component={Link}
+            to="/lists"
+            label="My Lists"
+            leftSection={<IconList size={16} />}
+            active={location.pathname.startsWith('/lists')}
+            onClick={close}
+            mb="xs"
+            color="teal"
           />
           <NavLink
             component={Link}

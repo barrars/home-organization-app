@@ -116,3 +116,36 @@ export interface HomeInviteClaim {
   /** Only present when mode === 'join' */
   homeToken?: string;
 }
+
+// ── Lists ──────────────────────────────────────────────────────────────────
+
+/** List summary returned by GET /api/lists */
+export interface ItemList {
+  _id: string;
+  homeId: string;
+  name: string;
+  description: string;
+  itemCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** A single entry in a list — item fully populated with room info */
+export interface ListEntry {
+  listItemId: string;
+  note: string;
+  addedAt: string;
+  item: Item & { roomId: { _id: string; name: string; icon: string } };
+}
+
+/** Full list detail returned by GET /api/lists/:id */
+export interface ItemListDetail extends Omit<ItemList, 'itemCount'> {
+  items: ListEntry[];
+}
+
+/** Membership info returned by GET /api/lists/for-item/:itemId */
+export interface ItemListMembership {
+  listItemId: string;
+  note: string;
+  list: { _id: string; name: string; description: string };
+}
