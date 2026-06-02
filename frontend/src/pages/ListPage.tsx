@@ -182,7 +182,7 @@ const ListPage: React.FC = () => {
                       },
                     }
                   : e,
-              ),
+              ) as import('../types').ListEntry[],
             }
           : prev,
       );
@@ -309,7 +309,7 @@ const ListPage: React.FC = () => {
                     style={{ cursor: 'pointer', textDecoration: 'none' }}
                   >
                     <Group gap={4} wrap="nowrap">
-                      <RoomIcon name={entry.item.roomId.icon} size={11} />
+                      <RoomIcon iconKey={entry.item.roomId.icon} size={11} />
                       {entry.item.roomId.name}
                     </Group>
                   </Badge>

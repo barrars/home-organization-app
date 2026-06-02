@@ -39,6 +39,33 @@
  *   The current token is printed at the end of each seed run and saved to:
  *     /tmp/seed-home-token.txt
  *
+ * ── SEEDING PRODUCTION (chores.dailydocket.org) ─────────────────────────────
+ *
+ *   1. SSH into the server:
+ *        ssh your-user@chores.dailydocket.org
+ *
+ *   2. Navigate to the app and run the seed:
+ *        cd /path/to/home-organization-app/backend
+ *        npx ts-node src/seed.ts
+ *
+ *   3. Note the token printed at the end of the run.
+ *
+ *   4. Log in by running this in the browser console at
+ *      https://chores.dailydocket.org/ :
+ *
+ *        fetch('/api/auth/switch', {
+ *          method: 'POST',
+ *          credentials: 'include',
+ *          headers: { 'Content-Type': 'application/json' },
+ *          body: JSON.stringify({ token: '<token from seed output>' })
+ *        }).then(r => r.json()).then(d => { console.log('Switched:', d); location.reload(); })
+ *
+ *   To reset/re-seed the same home later (on the server):
+ *        npx ts-node src/seed.ts
+ *
+ *   To start a brand-new home on the server:
+ *        rm /tmp/seed-home-token.txt && npx ts-node src/seed.ts
+ *
  * ── TROUBLESHOOTING ──────────────────────────────────────────────────────────
  *
  *   429 on /api/auth/init  →  Restart the backend (rate limiter is in-memory).
