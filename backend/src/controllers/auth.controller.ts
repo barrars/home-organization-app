@@ -270,7 +270,7 @@ class AuthController {
         return
       }
 
-      const homeId = new mongoose.Types.ObjectId(req.params.id)
+      const homeId = new mongoose.Types.ObjectId(req.params.id as string)
       const home = await Home.findById(homeId)
       if (!home || home.token !== targetToken) {
         res.status(404).json({ message: 'Home not found.' })
