@@ -23,6 +23,7 @@ import listRouter from './routes/list.routes'
 import shareLinkController from './controllers/shareLink.controller'
 import homeInviteController from './controllers/homeInvite.controller'
 import { authMiddleware } from './middleware/authMiddleware'
+import { deviceMiddleware } from './middleware/deviceMiddleware'
 
 const app = express()
 const PORT = process.env.PORT || 5000
@@ -63,6 +64,9 @@ app.use(
 app.use(cookieParser())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+
+// Device fingerprint — sets req.deviceId via device_id cookie (must be after cookieParser)
+app.use(deviceMiddleware)
 
 // MongoDB connection
 mongoose

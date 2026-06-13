@@ -69,9 +69,8 @@ const SharedWithMe: React.FC = () => {
           {shares.map((share) => {
             const target = share.target as Record<string, string> | null;
             const name = target?.name ?? 'Unknown';
-            const shareUrl =
-              share.shareLinkToken ? `/share/${share.shareLinkToken}` : null;
-            const homeToken = share.targetType === 'home' ? target?.token ?? null : null;
+            const shareUrl = share.shareLinkToken ? `/share/${share.shareLinkToken}` : null;
+            const homeToken = share.targetType === 'home' ? (target?.token ?? null) : null;
 
             return (
               <Card key={share._id} shadow="xs" padding="md" radius="md" withBorder>
@@ -84,12 +83,19 @@ const SharedWithMe: React.FC = () => {
                           component={Link}
                           to={shareUrl}
                           fw={500}
-                          style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                          style={{
+                            display: 'block',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
                         >
                           {name}
                         </Anchor>
                       ) : (
-                        <Text fw={500} truncate>{name}</Text>
+                        <Text fw={500} truncate>
+                          {name}
+                        </Text>
                       )}
                       <Group gap="xs">
                         <Badge size="xs" variant="light">

@@ -59,7 +59,11 @@ const InvitePage: React.FC = () => {
           homes[idx].id = String(switchResult.id);
           homes[idx].name = result.homeName;
         } else {
-          homes.push({ id: String(switchResult.id), token: result.homeToken!, name: result.homeName });
+          homes.push({
+            id: String(switchResult.id),
+            token: result.homeToken!,
+            name: result.homeName,
+          });
         }
         localStorage.setItem('home_organizer_homes', JSON.stringify(homes));
         localStorage.setItem('home_organizer_active_id', String(switchResult.id));
@@ -85,7 +89,9 @@ const InvitePage: React.FC = () => {
       <Center h="100vh">
         <Stack align="center" gap="sm">
           <Loader />
-          <Text size="sm" c="dimmed">Loading invite…</Text>
+          <Text size="sm" c="dimmed">
+            Loading invite…
+          </Text>
         </Stack>
       </Center>
     );
@@ -108,7 +114,9 @@ const InvitePage: React.FC = () => {
 
   const isJoin = invite.mode === 'join';
   const expiresDate = new Date(invite.expiresAt).toLocaleDateString(undefined, {
-    month: 'short', day: 'numeric', year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
   });
 
   if (claimed) {
@@ -158,7 +166,9 @@ const InvitePage: React.FC = () => {
               : `You've been invited to view "${invite.homeName}" as a guest. Their shared rooms and items will appear in your "Shared with Me" tab.`}
           </Text>
 
-          <Text size="xs" c="dimmed">Expires {expiresDate} · single use</Text>
+          <Text size="xs" c="dimmed">
+            Expires {expiresDate} · single use
+          </Text>
 
           <Button
             fullWidth

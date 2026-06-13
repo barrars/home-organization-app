@@ -32,9 +32,11 @@ import {
   IconUsers,
   IconPackage,
   IconList,
+  IconPlus,
 } from '@tabler/icons-react';
 import { useRooms } from '../contexts/RoomsContext';
 import { useAuth } from '../contexts/AuthContext';
+import { MAX_HOMES } from '../contexts/AuthContext';
 import SearchBar from './SearchBar';
 import RecoveryModal from './RecoveryModal';
 import HomeInviteModal from './HomeInviteModal';
@@ -53,7 +55,8 @@ const Layout: React.FC = () => {
     homes,
     token,
     switchHome,
-    leaveHome,
+    createHome,
+    deleteHome,
   } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -61,6 +64,13 @@ const Layout: React.FC = () => {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [nameInput, setNameInput] = useState('');
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{
+    id: string;
+    token: string;
+    name: string;
+  } | null>(null);
+  const [creating, setCreating] = useState(false);
 
   const openSettings = () => {
     setNameInput(homeName);
@@ -334,11 +344,11 @@ const Layout: React.FC = () => {
           </ActionIcon>
         </Group>
 
-        {homes.length > 1 && (
+        {homes.length > 0 && (
           <>
             <Divider my="md" label="Connected households" labelPosition="left" />
             <Text size="xs" c="dimmed" mb="xs">
-              Switch to another household or leave one you've joined.
+              Switch to another household or delete one to free a slot (max {MAX_HOMES}).
             </Text>
             {homes.map((h) => {
               const isActive = h.token === token;
@@ -382,20 +392,93 @@ const Layout: React.FC = () => {
                       <IconCheck size={16} color="var(--mantine-color-blue-6)" />
                     </Group>
                   ) : (
-                    <ActionIcon
-                      size="sm"
-                      variant="subtle"
-                      color="red"
-                      aria-label={`Leave ${h.name}`}
-                      onClick={() => leaveHome(h.token)}
-                      style={{ flexShrink: 0 }}
-                    >
-                      <IconX size={14} />
-                    </ActionIcon>
+                    <Tooltip label="Delete this home and all its data" withArrow position="left">
+                      <ActionIcon
+                        size="sm"
+                        variant="subtle"
+                        color="red"
+                        aria-label={`Delete ${h.name}`}
+                        onClick={() => {
+                          setDeleteTarget({ id: h.id, token: h.token, name: h.name });
+                          setDeleteConfirmOpen(true);
+                        }}
+                        style={{ flexShrink: 0 }}
+                      >
+                        <IconX size={14} />
+                      </ActionIcon>
+                    </Tooltip>
                   )}
                 </Group>
               );
             })}
+            <Tooltip
+              label={`Maximum of ${MAX_HOMES} homes. Delete one first.`}
+              disabled={homes.length < MAX_HOMES}
+              withArrow
+            >
+              <Button
+                fullWidth
+                mt="sm"
+                size="xs"
+                variant="light"
+                color="blue"
+                leftSection={<IconPlus size={14} />}
+                disabled={homes.length >= MAX_HOMES || creating}
+                loading={creating}
+                onClick={async () => {
+                  setCreating(true);
+                  try {
+                    await createHome();
+                  } catch {
+                    setCreating(false);
+                  }
+                }}
+              >
+                Create New Home
+              </Button>
+            </Tooltip>
+          </>
+        )}
+      </Modal>
+
+      <Modal
+        opened={deleteConfirmOpen}
+        onClose={() => {
+          setDeleteConfirmOpen(false);
+          setDeleteTarget(null);
+        }}
+        title="Delete home?"
+        centered
+        size="sm"
+      >
+        {deleteTarget && (
+          <>
+            <Text size="sm" mb="md">
+              Permanently delete <strong>{deleteTarget.name}</strong> and all its rooms, items,
+              lists, shares, and data? This cannot be undone.
+            </Text>
+            <Group justify="flex-end" gap="sm">
+              <Button
+                variant="subtle"
+                color="gray"
+                onClick={() => {
+                  setDeleteConfirmOpen(false);
+                  setDeleteTarget(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                color="red"
+                onClick={async () => {
+                  await deleteHome(deleteTarget.id, deleteTarget.token);
+                  setDeleteConfirmOpen(false);
+                  setDeleteTarget(null);
+                }}
+              >
+                Delete forever
+              </Button>
+            </Group>
           </>
         )}
       </Modal>

@@ -2,6 +2,7 @@
 // ts-node-dev --files loads all tsconfig-included .d.ts files before compiling any file.
 declare namespace Express {
   interface Request {
+    deviceId: string
     homeId: import('mongoose').Types.ObjectId
     home: import('../models/home.model').IHome
   }

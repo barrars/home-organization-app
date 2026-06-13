@@ -144,7 +144,10 @@ const SearchResults: React.FC = () => {
                 variant="light"
                 color="teal"
                 leftSection={<IconList size={13} />}
-                onClick={(e) => { e.stopPropagation(); setAddToListItem(item); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setAddToListItem(item);
+                }}
                 fullWidth
               >
                 Add to List

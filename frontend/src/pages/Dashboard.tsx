@@ -212,11 +212,12 @@ const Dashboard: React.FC = () => {
               >
                 {/* Thumbnail strip — up to 3 images */}
                 {(() => {
-                  const imgs = Array.isArray(item.imageUrls) && item.imageUrls.length > 0
-                    ? item.imageUrls.filter(Boolean)
-                    : item.imageUrl?.trim()
-                    ? [item.imageUrl]
-                    : [];
+                  const imgs =
+                    Array.isArray(item.imageUrls) && item.imageUrls.length > 0
+                      ? item.imageUrls.filter(Boolean)
+                      : item.imageUrl?.trim()
+                        ? [item.imageUrl]
+                        : [];
                   return imgs.length > 0 ? (
                     <Box mb={6} style={{ display: 'flex', gap: 4 }}>
                       {imgs.slice(0, 3).map((url, idx) => (
@@ -244,7 +245,9 @@ const Dashboard: React.FC = () => {
                                 justifyContent: 'center',
                               }}
                             >
-                              <Text size="xs" c="white" fw={600}>+{imgs.length - 3}</Text>
+                              <Text size="xs" c="white" fw={600}>
+                                +{imgs.length - 3}
+                              </Text>
                             </Box>
                           )}
                         </Box>

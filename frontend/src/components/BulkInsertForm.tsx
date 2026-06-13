@@ -54,17 +54,32 @@ const BulkInsertForm: React.FC<Props> = ({ onCreated }) => {
 
   const handleSubmit = async () => {
     if (!roomId) {
-      notifications.show({ title: 'Select a room', message: 'Choose a room before adding items.', color: 'orange' });
+      notifications.show({
+        title: 'Select a room',
+        message: 'Choose a room before adding items.',
+        color: 'orange',
+      });
       return;
     }
     if (validRows.length === 0) {
-      notifications.show({ title: 'Nothing to add', message: 'Enter at least one item name.', color: 'orange' });
+      notifications.show({
+        title: 'Nothing to add',
+        message: 'Enter at least one item name.',
+        color: 'orange',
+      });
       return;
     }
     setSubmitting(true);
     try {
       await bulkInsertInventory(
-        validRows.map((r) => ({ name: r.name, quantity: r.quantity || 1, notes: r.notes, roomId, categories: [], tags: [] })),
+        validRows.map((r) => ({
+          name: r.name,
+          quantity: r.quantity || 1,
+          notes: r.notes,
+          roomId,
+          categories: [],
+          tags: [],
+        })),
       );
       notifications.show({
         title: 'Done!',
@@ -74,7 +89,11 @@ const BulkInsertForm: React.FC<Props> = ({ onCreated }) => {
       setRows([emptyRow()]);
       onCreated?.();
     } catch {
-      notifications.show({ title: 'Error', message: 'Failed to add items. Try again.', color: 'red' });
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to add items. Try again.',
+        color: 'red',
+      });
     } finally {
       setSubmitting(false);
     }
@@ -144,12 +163,16 @@ const BulkInsertForm: React.FC<Props> = ({ onCreated }) => {
           disabled={!roomId || validRows.length === 0}
           size="sm"
         >
-          {validRows.length > 0 ? `Save ${validRows.length} item${validRows.length > 1 ? 's' : ''}` : 'Save items'}
+          {validRows.length > 0
+            ? `Save ${validRows.length} item${validRows.length > 1 ? 's' : ''}`
+            : 'Save items'}
         </Button>
       </Group>
 
       {rows.length > 1 && (
-        <Text size="xs" c="dimmed">Rows with an empty name will be skipped.</Text>
+        <Text size="xs" c="dimmed">
+          Rows with an empty name will be skipped.
+        </Text>
       )}
     </Stack>
   );

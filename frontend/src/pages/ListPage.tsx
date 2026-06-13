@@ -82,7 +82,9 @@ const ListPage: React.FC = () => {
     }
   }, [id]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   // ── Header edit ──────────────────────────────────────────────────────────
 
@@ -98,7 +100,9 @@ const ListPage: React.FC = () => {
     setSavingHeader(true);
     try {
       await updateList(list._id, { name: editName.trim(), description: editDesc.trim() });
-      setList((prev) => prev ? { ...prev, name: editName.trim(), description: editDesc.trim() } : prev);
+      setList((prev) =>
+        prev ? { ...prev, name: editName.trim(), description: editDesc.trim() } : prev,
+      );
       setHeaderEditOpen(false);
       notifications.show({ title: 'Saved', message: 'List updated.', color: 'green' });
     } catch {
@@ -112,13 +116,22 @@ const ListPage: React.FC = () => {
 
   const handleRemove = async (entry: ListEntry) => {
     if (!list) return;
-    if (!window.confirm(`Remove "${entry.item.name}" from this list? The item itself is unaffected.`)) return;
+    if (
+      !window.confirm(`Remove "${entry.item.name}" from this list? The item itself is unaffected.`)
+    )
+      return;
     try {
       await removeItemFromList(list._id, entry.item._id);
       setList((prev) =>
-        prev ? { ...prev, items: prev.items.filter((e) => e.listItemId !== entry.listItemId) } : prev,
+        prev
+          ? { ...prev, items: prev.items.filter((e) => e.listItemId !== entry.listItemId) }
+          : prev,
       );
-      notifications.show({ title: 'Removed', message: `"${entry.item.name}" removed from list.`, color: 'orange' });
+      notifications.show({
+        title: 'Removed',
+        message: `"${entry.item.name}" removed from list.`,
+        color: 'orange',
+      });
     } catch {
       notifications.show({ title: 'Error', message: 'Could not remove item.', color: 'red' });
     }
@@ -178,7 +191,11 @@ const ListPage: React.FC = () => {
                       ...e,
                       item: {
                         ...e.item,
-                        roomId: { _id: relocateRoomId, name: room?.name ?? '', icon: room?.icon ?? 'door' },
+                        roomId: {
+                          _id: relocateRoomId,
+                          name: room?.name ?? '',
+                          icon: room?.icon ?? 'door',
+                        },
                       },
                     }
                   : e,
@@ -187,7 +204,11 @@ const ListPage: React.FC = () => {
           : prev,
       );
       setRelocateEntry(null);
-      notifications.show({ title: 'Relocated', message: `"${relocateEntry.item.name}" moved to ${room?.name ?? 'new room'}.`, color: 'green' });
+      notifications.show({
+        title: 'Relocated',
+        message: `"${relocateEntry.item.name}" moved to ${room?.name ?? 'new room'}.`,
+        color: 'green',
+      });
     } catch {
       notifications.show({ title: 'Error', message: 'Could not relocate item.', color: 'red' });
     } finally {
@@ -238,7 +259,12 @@ const ListPage: React.FC = () => {
           <Group gap="xs" align="center" mb={2}>
             <Title order={2}>{list.name}</Title>
             <Tooltip label="Edit list details" withArrow>
-              <ActionIcon variant="subtle" size="sm" onClick={openHeaderEdit} aria-label="Edit list">
+              <ActionIcon
+                variant="subtle"
+                size="sm"
+                onClick={openHeaderEdit}
+                aria-label="Edit list"
+              >
                 <IconEdit size={14} />
               </ActionIcon>
             </Tooltip>
@@ -314,7 +340,12 @@ const ListPage: React.FC = () => {
                     </Group>
                   </Badge>
                   <Tooltip label="Relocate to another room" withArrow>
-                    <ActionIcon variant="subtle" size="xs" onClick={() => openRelocate(entry)} aria-label="Relocate item">
+                    <ActionIcon
+                      variant="subtle"
+                      size="xs"
+                      onClick={() => openRelocate(entry)}
+                      aria-label="Relocate item"
+                    >
                       <IconEdit size={12} />
                     </ActionIcon>
                   </Tooltip>
@@ -360,7 +391,12 @@ const ListPage: React.FC = () => {
                     )}
                   </Group>
                   <Tooltip label="Edit note" withArrow>
-                    <ActionIcon variant="subtle" size="xs" onClick={() => openNoteEdit(entry)} aria-label="Edit note">
+                    <ActionIcon
+                      variant="subtle"
+                      size="xs"
+                      onClick={() => openNoteEdit(entry)}
+                      aria-label="Edit note"
+                    >
                       <IconEdit size={12} />
                     </ActionIcon>
                   </Tooltip>
@@ -372,7 +408,13 @@ const ListPage: React.FC = () => {
       </Grid>
 
       {/* ── Edit list header modal ── */}
-      <Modal opened={headerEditOpen} onClose={() => setHeaderEditOpen(false)} title="Edit List" centered size="sm">
+      <Modal
+        opened={headerEditOpen}
+        onClose={() => setHeaderEditOpen(false)}
+        title="Edit List"
+        centered
+        size="sm"
+      >
         <Stack gap="sm">
           <TextInput
             label="Name"
@@ -380,7 +422,9 @@ const ListPage: React.FC = () => {
             onChange={(e) => setEditName(e.currentTarget.value)}
             required
             data-autofocus
-            onKeyDown={(e) => { if (e.key === 'Enter') saveHeader(); }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') saveHeader();
+            }}
           />
           <Textarea
             label="Description"
@@ -389,7 +433,9 @@ const ListPage: React.FC = () => {
             rows={3}
           />
           <Group justify="flex-end" mt="xs">
-            <Button variant="subtle" onClick={() => setHeaderEditOpen(false)}>Cancel</Button>
+            <Button variant="subtle" onClick={() => setHeaderEditOpen(false)}>
+              Cancel
+            </Button>
             <Button onClick={saveHeader} loading={savingHeader} disabled={!editName.trim()}>
               Save
             </Button>
@@ -416,8 +462,12 @@ const ListPage: React.FC = () => {
             data-autofocus
           />
           <Group justify="flex-end" mt="xs">
-            <Button variant="subtle" onClick={() => setNoteEntry(null)}>Cancel</Button>
-            <Button onClick={saveNote} loading={savingNote}>Save Note</Button>
+            <Button variant="subtle" onClick={() => setNoteEntry(null)}>
+              Cancel
+            </Button>
+            <Button onClick={saveNote} loading={savingNote}>
+              Save Note
+            </Button>
           </Group>
         </Stack>
       </Modal>
@@ -443,7 +493,9 @@ const ListPage: React.FC = () => {
             data-autofocus
           />
           <Group justify="flex-end" mt="xs">
-            <Button variant="subtle" onClick={() => setRelocateEntry(null)}>Cancel</Button>
+            <Button variant="subtle" onClick={() => setRelocateEntry(null)}>
+              Cancel
+            </Button>
             <Button onClick={saveRelocate} loading={savingRelocate} disabled={!relocateRoomId}>
               Move Item
             </Button>

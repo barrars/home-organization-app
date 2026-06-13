@@ -36,6 +36,10 @@ export const switchHome = (token: string) =>
     .then((r) => r.data);
 export const updateHomeName = (name: string) =>
   api.patch<{ name: string }>('/auth/home', { name }).then((r) => r.data.name);
+export const createHome = () =>
+  api.post<{ id: string; token: string; name: string }>('/auth/create').then((r) => r.data);
+export const deleteHome = (id: string, token: string) =>
+  api.delete(`/auth/home/${id}`, { data: { token } });
 
 // Rooms
 export const getRooms = () => api.get<Room[]>('/rooms').then((r) => r.data);
@@ -144,8 +148,7 @@ export const createShareLink = (data: {
   targetId: string;
   canEdit?: boolean;
 }) => api.post<ShareLink>('/share-links', data).then((r) => r.data);
-export const getMyShareLinks = () =>
-  api.get<ShareLink[]>('/share-links').then((r) => r.data);
+export const getMyShareLinks = () => api.get<ShareLink[]>('/share-links').then((r) => r.data);
 export const updateShareLink = (id: string, data: { canEdit?: boolean; active?: boolean }) =>
   api.patch<ShareLink>(`/share-links/${id}`, data).then((r) => r.data);
 export const removeShareLink = (id: string) => api.delete(`/share-links/${id}`);
@@ -154,7 +157,9 @@ export const resolveShareLink = (token: string) =>
   axios.get<ResolvedShareLink>(`/api/public/share/${token}`).then((r) => r.data);
 // Register a visit so the link appears in Shared With Me (auth required)
 export const visitShareLink = (token: string) =>
-  api.post(`/share-links/${token}/visit`).catch(() => { /* non-critical */ });
+  api.post(`/share-links/${token}/visit`).catch(() => {
+    /* non-critical */
+  });
 
 // Notifications
 export const getNotifications = (params?: { unreadOnly?: boolean; limit?: number }) =>

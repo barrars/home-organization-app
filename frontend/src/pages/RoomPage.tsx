@@ -97,7 +97,10 @@ const ItemPhotoArea: React.FC<ItemPhotoAreaProps> = ({
           notifications.show({ message: 'No image in clipboard', color: 'yellow' });
         }
       } catch {
-        notifications.show({ message: 'Could not read clipboard — use Ctrl+V or drag a photo here instead', color: 'orange' });
+        notifications.show({
+          message: 'Could not read clipboard — use Ctrl+V or drag a photo here instead',
+          color: 'orange',
+        });
       }
     };
 
@@ -147,7 +150,11 @@ const ItemPhotoArea: React.FC<ItemPhotoAreaProps> = ({
     };
 
     const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-      if (Array.from(e.dataTransfer.items).some((it) => it.kind === 'file' && it.type.startsWith('image/'))) {
+      if (
+        Array.from(e.dataTransfer.items).some(
+          (it) => it.kind === 'file' && it.type.startsWith('image/'),
+        )
+      ) {
         e.preventDefault();
         setDragging(true);
       }
@@ -333,7 +340,9 @@ const RoomPage: React.FC = () => {
     const t = setTimeout(() => {
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
       el.classList.add('item-highlight');
-      el.addEventListener('animationend', () => el.classList.remove('item-highlight'), { once: true });
+      el.addEventListener('animationend', () => el.classList.remove('item-highlight'), {
+        once: true,
+      });
     }, 150);
     return () => clearTimeout(t);
   }, [highlightId, loading, items]);

@@ -21,7 +21,12 @@ class RoomController {
       const saved = await room.save()
       const homeDoc = await Home.findById(req.homeId, 'name').lean()
       const homeName = homeDoc?.name ?? ''
-      emitToHome(req.homeId, 'room:created', { id: saved._id, homeId: req.homeId, roomName: saved.name, homeName })
+      emitToHome(req.homeId, 'room:created', {
+        id: saved._id,
+        homeId: req.homeId,
+        roomName: saved.name,
+        homeName,
+      })
       res.status(201).json(saved)
     } catch (error) {
       logger.error('Error creating room', { error })
@@ -43,12 +48,17 @@ class RoomController {
       }
       const homeDoc = await Home.findById(req.homeId, 'name').lean()
       const homeName = homeDoc?.name ?? ''
-      emitToHome(req.homeId, 'room:updated', { id: updated._id, homeId: req.homeId, roomName: updated.name, homeName })
-      notifyShareRecipients(
-        [{ targetType: 'room', targetId: updated._id }],
-        'share:room:updated',
-        { roomId: updated._id, roomName: updated.name, homeName },
-      )
+      emitToHome(req.homeId, 'room:updated', {
+        id: updated._id,
+        homeId: req.homeId,
+        roomName: updated.name,
+        homeName,
+      })
+      notifyShareRecipients([{ targetType: 'room', targetId: updated._id }], 'share:room:updated', {
+        roomId: updated._id,
+        roomName: updated.name,
+        homeName,
+      })
       res.json(updated)
     } catch (error) {
       logger.error('Error updating room', { id: req.params.id, error })
@@ -66,7 +76,12 @@ class RoomController {
       if (removed) {
         const homeDoc = await Home.findById(req.homeId, 'name').lean()
         const homeName = homeDoc?.name ?? ''
-        emitToHome(req.homeId, 'room:deleted', { id: removed._id, homeId: req.homeId, roomName: removed.name, homeName })
+        emitToHome(req.homeId, 'room:deleted', {
+          id: removed._id,
+          homeId: req.homeId,
+          roomName: removed.name,
+          homeName,
+        })
       } else {
         emitToHome(req.homeId, 'room:deleted', { id: req.params.id, homeId: req.homeId })
       }

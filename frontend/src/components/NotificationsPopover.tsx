@@ -34,29 +34,46 @@ function getLabel(notification: Notification): string {
   const inRoom = roomName ? ` in ${room}` : '';
 
   switch (notification.event) {
-    case 'item:created':       return `${item} added${inRoom}`;
-    case 'item:updated':       return `${item} updated${inRoom}`;
-    case 'item:deleted':       return `${item} trashed${inRoom}`;
-    case 'item:restored':      return `${item} restored${inRoom}`;
-    case 'item:destroyed':     return `${item} permanently deleted`;
-    case 'room:created':       return `Room ${room} created`;
-    case 'room:updated':       return `Room ${room} updated`;
-    case 'room:deleted':       return `Room ${room} trashed`;
-    case 'room:restored':      return `Room ${room} restored`;
-    case 'room:destroyed':     return `Room ${room} permanently deleted`;
-    case 'share:item:created': return `${item} added to ${room}`;
-    case 'share:item:updated': return `${item} updated in ${room}`;
-    case 'share:item:deleted': return `${item} removed from ${room}`;
-    case 'share:room:updated': return `Room ${room} updated`;
-    case 'dumpster:wiped':     return 'The trash was emptied';
-    default:                   return notification.event;
+    case 'item:created':
+      return `${item} added${inRoom}`;
+    case 'item:updated':
+      return `${item} updated${inRoom}`;
+    case 'item:deleted':
+      return `${item} trashed${inRoom}`;
+    case 'item:restored':
+      return `${item} restored${inRoom}`;
+    case 'item:destroyed':
+      return `${item} permanently deleted`;
+    case 'room:created':
+      return `Room ${room} created`;
+    case 'room:updated':
+      return `Room ${room} updated`;
+    case 'room:deleted':
+      return `Room ${room} trashed`;
+    case 'room:restored':
+      return `Room ${room} restored`;
+    case 'room:destroyed':
+      return `Room ${room} permanently deleted`;
+    case 'share:item:created':
+      return `${item} added to ${room}`;
+    case 'share:item:updated':
+      return `${item} updated in ${room}`;
+    case 'share:item:deleted':
+      return `${item} removed from ${room}`;
+    case 'share:room:updated':
+      return `Room ${room} updated`;
+    case 'dumpster:wiped':
+      return 'The trash was emptied';
+    default:
+      return notification.event;
   }
 }
 
 function getDestination(notification: Notification): string | null {
   const d = (notification.data ?? {}) as Record<string, string>;
   const event = notification.event;
-  if (event.startsWith('share:')) return d.shareLinkToken ? `/share/${d.shareLinkToken}` : '/shared-with-me';
+  if (event.startsWith('share:'))
+    return d.shareLinkToken ? `/share/${d.shareLinkToken}` : '/shared-with-me';
   if (event.startsWith('room:') && d.id) return `/rooms/${d.id}`;
   if (event.startsWith('item:') && d.roomId) return `/rooms/${d.roomId}`;
   return null;
@@ -140,8 +157,15 @@ const NotificationsPopover: React.FC = () => {
 
       <Popover.Dropdown p={0} style={{ overflow: 'hidden' }}>
         {/* Header */}
-        <Group justify="space-between" px="md" py="sm" style={{ borderBottom: '1px solid var(--mantine-color-gray-2)' }}>
-          <Text fw={600} size="sm">Notifications</Text>
+        <Group
+          justify="space-between"
+          px="md"
+          py="sm"
+          style={{ borderBottom: '1px solid var(--mantine-color-gray-2)' }}
+        >
+          <Text fw={600} size="sm">
+            Notifications
+          </Text>
           {unreadCount > 0 && (
             <Button size="compact-xs" variant="subtle" onClick={handleMarkAllRead}>
               Mark all read
@@ -173,12 +197,23 @@ const NotificationsPopover: React.FC = () => {
                         width: '100%',
                         padding: '10px 14px',
                         background: n.read ? undefined : 'var(--mantine-color-blue-0)',
-                        borderLeft: n.read ? '3px solid transparent' : '3px solid var(--mantine-color-blue-5)',
+                        borderLeft: n.read
+                          ? '3px solid transparent'
+                          : '3px solid var(--mantine-color-blue-5)',
                         cursor: dest ? 'pointer' : 'default',
                         transition: 'background 120ms ease',
                       }}
-                      onMouseEnter={(e) => { if (dest) (e.currentTarget as HTMLElement).style.background = n.read ? 'var(--mantine-color-gray-0)' : 'var(--mantine-color-blue-1)'; }}
-                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = n.read ? '' : 'var(--mantine-color-blue-0)'; }}
+                      onMouseEnter={(e) => {
+                        if (dest)
+                          (e.currentTarget as HTMLElement).style.background = n.read
+                            ? 'var(--mantine-color-gray-0)'
+                            : 'var(--mantine-color-blue-1)';
+                      }}
+                      onMouseLeave={(e) => {
+                        (e.currentTarget as HTMLElement).style.background = n.read
+                          ? ''
+                          : 'var(--mantine-color-blue-0)';
+                      }}
                     >
                       <Group justify="space-between" wrap="nowrap" gap="xs">
                         <div style={{ flex: 1, minWidth: 0 }}>
@@ -196,7 +231,10 @@ const NotificationsPopover: React.FC = () => {
                                 size="xs"
                                 variant="subtle"
                                 color="blue"
-                                onClick={(e) => { e.stopPropagation(); handleMarkRead(n._id); }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleMarkRead(n._id);
+                                }}
                                 aria-label="Mark as read"
                               >
                                 <IconCheck size={12} />
@@ -208,7 +246,10 @@ const NotificationsPopover: React.FC = () => {
                               size="xs"
                               variant="subtle"
                               color="red"
-                              onClick={(e) => { e.stopPropagation(); handleDelete(n._id); }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDelete(n._id);
+                              }}
                               aria-label="Delete"
                             >
                               <IconTrash size={12} />

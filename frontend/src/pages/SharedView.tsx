@@ -16,12 +16,7 @@ import {
   Alert,
   Box,
 } from '@mantine/core';
-import {
-  IconPackage,
-  IconDoor,
-  IconAlertCircle,
-  IconLock,
-} from '@tabler/icons-react';
+import { IconPackage, IconDoor, IconAlertCircle, IconLock } from '@tabler/icons-react';
 import { resolveShareLink, visitShareLink } from '../services/api';
 import { getStoredHomes } from '../contexts/AuthContext';
 import type { ResolvedShareLink, Item, Room } from '../types';
@@ -58,7 +53,9 @@ const SharedView: React.FC = () => {
       <Center h="100vh">
         <Stack align="center" gap="sm">
           <Loader />
-          <Text size="sm" c="dimmed">Loading shared content…</Text>
+          <Text size="sm" c="dimmed">
+            Loading shared content…
+          </Text>
         </Stack>
       </Center>
     );
@@ -88,18 +85,22 @@ const SharedView: React.FC = () => {
           {isRoom ? <IconDoor size={28} color="gray" /> : <IconPackage size={28} color="gray" />}
         </Box>
         <div style={{ flex: 1 }}>
-          <Title order={2}>
-            {isRoom ? roomData?.name : itemData?.name}
-          </Title>
+          <Title order={2}>{isRoom ? roomData?.name : itemData?.name}</Title>
           {isRoom && roomData?.description && (
-            <Text c="dimmed" size="sm">{roomData.description}</Text>
+            <Text c="dimmed" size="sm">
+              {roomData.description}
+            </Text>
           )}
         </div>
         <Group gap="xs">
           <Badge variant="light" color={isRoom ? 'blue' : 'violet'}>
             {isRoom ? 'Room' : 'Item'}
           </Badge>
-          <Badge variant="dot" color={data.canEdit ? 'orange' : 'gray'} leftSection={<IconLock size={10} />}>
+          <Badge
+            variant="dot"
+            color={data.canEdit ? 'orange' : 'gray'}
+            leftSection={<IconLock size={10} />}
+          >
             {data.canEdit ? 'Read & Write' : 'Read only'}
           </Badge>
         </Group>
@@ -140,14 +141,21 @@ interface ItemCardProps {
 }
 
 const ItemCard: React.FC<ItemCardProps> = ({ item, fullWidth }) => {
-  const images = Array.isArray(item.imageUrls) && item.imageUrls.length > 0
-    ? item.imageUrls.filter(Boolean)
-    : item.imageUrl?.trim()
-    ? [item.imageUrl]
-    : [];
+  const images =
+    Array.isArray(item.imageUrls) && item.imageUrls.length > 0
+      ? item.imageUrls.filter(Boolean)
+      : item.imageUrl?.trim()
+        ? [item.imageUrl]
+        : [];
 
   return (
-    <Card shadow="xs" padding="md" radius="md" withBorder style={fullWidth ? { maxWidth: 480 } : undefined}>
+    <Card
+      shadow="xs"
+      padding="md"
+      radius="md"
+      withBorder
+      style={fullWidth ? { maxWidth: 480 } : undefined}
+    >
       {images.length > 0 && (
         <Card.Section mb="sm">
           <Image src={images[0]} height={160} fit="scale-down" />
@@ -155,14 +163,20 @@ const ItemCard: React.FC<ItemCardProps> = ({ item, fullWidth }) => {
       )}
 
       <Group justify="space-between" mb={6} wrap="nowrap">
-        <Text fw={600} lineClamp={1}>{item.name}</Text>
-        <Text size="sm" c="dimmed" style={{ flexShrink: 0 }}>×{item.quantity}</Text>
+        <Text fw={600} lineClamp={1}>
+          {item.name}
+        </Text>
+        <Text size="sm" c="dimmed" style={{ flexShrink: 0 }}>
+          ×{item.quantity}
+        </Text>
       </Group>
 
       {item.categories.length > 0 && (
         <Group gap={4} mb={4} wrap="wrap">
           {item.categories.map((cat) => (
-            <Badge key={cat._id} color="violet" variant="light" size="sm">{cat.name}</Badge>
+            <Badge key={cat._id} color="violet" variant="light" size="sm">
+              {cat.name}
+            </Badge>
           ))}
         </Group>
       )}
@@ -170,7 +184,9 @@ const ItemCard: React.FC<ItemCardProps> = ({ item, fullWidth }) => {
       {item.tags.length > 0 && (
         <Group gap={4} wrap="wrap">
           {item.tags.map((tag) => (
-            <Badge key={tag._id} color="gray" variant="outline" size="sm">{tag.name}</Badge>
+            <Badge key={tag._id} color="gray" variant="outline" size="sm">
+              {tag.name}
+            </Badge>
           ))}
         </Group>
       )}
@@ -178,7 +194,9 @@ const ItemCard: React.FC<ItemCardProps> = ({ item, fullWidth }) => {
       {item.notes && (
         <>
           <Divider my="xs" />
-          <Text size="xs" c="dimmed">{item.notes}</Text>
+          <Text size="xs" c="dimmed">
+            {item.notes}
+          </Text>
         </>
       )}
     </Card>

@@ -145,15 +145,15 @@ const InventoryList: React.FC<Props> = ({ refresh }) => {
             </Group>
 
             <Anchor
-                size="xs"
-                c="dimmed"
-                mb={6}
-                component={Link}
-                to={`/rooms/${item.roomId}`}
-                style={{ display: 'block' }}
-              >
-                {roomName(item.roomId)}
-              </Anchor>
+              size="xs"
+              c="dimmed"
+              mb={6}
+              component={Link}
+              to={`/rooms/${item.roomId}`}
+              style={{ display: 'block' }}
+            >
+              {roomName(item.roomId)}
+            </Anchor>
 
             {item.categories.length > 0 && (
               <Group gap={4} mb={4} wrap="wrap">
@@ -183,7 +183,12 @@ const InventoryList: React.FC<Props> = ({ refresh }) => {
 
             <Group gap={4} justify="flex-end" mt="auto">
               <Tooltip label="Add to List" withArrow>
-                <ActionIcon size="sm" variant="subtle" color="teal" onClick={() => setAddToListItem(item)}>
+                <ActionIcon
+                  size="sm"
+                  variant="subtle"
+                  color="teal"
+                  onClick={() => setAddToListItem(item)}
+                >
                   <IconList size={14} />
                 </ActionIcon>
               </Tooltip>

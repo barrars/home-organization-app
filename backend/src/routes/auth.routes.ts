@@ -29,11 +29,26 @@ const switchLimiter = rateLimit({
   message: { message: 'Too many switch attempts, please try again later.' },
 })
 
+const deleteHomeLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many requests, please try again later.' },
+})
+
 router.post('/init', initLimiter, authController.init.bind(authController))
 router.get('/join', joinLimiter, authController.join.bind(authController))
 router.post('/switch', switchLimiter, authController.switch.bind(authController))
 router.get('/share', authMiddleware, authController.share.bind(authController))
 router.post('/rotate', authMiddleware, authController.rotateToken.bind(authController))
 router.patch('/home', authMiddleware, authController.patchHome.bind(authController))
+router.post('/create', authMiddleware, initLimiter, authController.create.bind(authController))
+router.delete(
+  '/home/:id',
+  authMiddleware,
+  deleteHomeLimiter,
+  authController.deleteHome.bind(authController),
+)
 
 export default router

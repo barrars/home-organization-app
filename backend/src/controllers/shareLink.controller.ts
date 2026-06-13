@@ -56,13 +56,21 @@ class ShareLinkController {
           targetId: new mongoose.Types.ObjectId(targetId),
         },
         {
-          $setOnInsert: { ownerHomeId, targetType: validTargetType, targetId: new mongoose.Types.ObjectId(targetId) },
+          $setOnInsert: {
+            ownerHomeId,
+            targetType: validTargetType,
+            targetId: new mongoose.Types.ObjectId(targetId),
+          },
           $set: { canEdit: !!canEdit, active: true },
         },
         { upsert: true, returnDocument: 'after' },
       )
 
-      logger.info('Share link created/updated', { shareLinkId: shareLink._id, targetType, targetId })
+      logger.info('Share link created/updated', {
+        shareLinkId: shareLink._id,
+        targetType,
+        targetId,
+      })
       res.status(201).json(shareLink)
     } catch (error) {
       logger.error('Error creating share link', { error })
@@ -160,7 +168,10 @@ class ShareLinkController {
 
       let target: unknown = null
       if (link.targetType === 'room') {
-        const room = await Room.findOne({ _id: link.targetId, deletedAt: null }, 'name description icon').lean()
+        const room = await Room.findOne(
+          { _id: link.targetId, deletedAt: null },
+          'name description icon',
+        ).lean()
         if (!room) {
           res.status(404).json({ message: 'Shared room no longer exists' })
           return

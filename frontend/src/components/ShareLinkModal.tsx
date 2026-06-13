@@ -12,13 +12,7 @@ import {
   Anchor,
   Badge,
 } from '@mantine/core';
-import {
-  IconLink,
-  IconCopy,
-  IconCheck,
-  IconAlertCircle,
-  IconTrash,
-} from '@tabler/icons-react';
+import { IconLink, IconCopy, IconCheck, IconAlertCircle, IconTrash } from '@tabler/icons-react';
 import { createShareLink, updateShareLink, removeShareLink } from '../services/api';
 import type { ShareLink } from '../types';
 
@@ -42,9 +36,7 @@ const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [toggling, setToggling] = useState(false);
 
-  const shareUrl = shareLink
-    ? `${window.location.origin}/share/${shareLink.token}`
-    : '';
+  const shareUrl = shareLink ? `${window.location.origin}/share/${shareLink.token}` : '';
 
   useEffect(() => {
     if (!opened) return;
@@ -113,7 +105,9 @@ const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
       {loading ? (
         <Stack align="center" py="xl">
           <Loader size="sm" />
-          <Text size="sm" c="dimmed">Generating link…</Text>
+          <Text size="sm" c="dimmed">
+            Generating link…
+          </Text>
         </Stack>
       ) : error ? (
         <Alert icon={<IconAlertCircle size={16} />} color="red" title="Error">
@@ -123,7 +117,9 @@ const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
         <Stack gap="md">
           {/* Link display */}
           <Stack gap={4}>
-            <Text size="xs" fw={600} tt="uppercase" c="dimmed">Share link</Text>
+            <Text size="xs" fw={600} tt="uppercase" c="dimmed">
+              Share link
+            </Text>
             <Group gap="xs" wrap="nowrap">
               <Anchor
                 href={shareUrl}
@@ -158,18 +154,10 @@ const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
 
           {/* Status badge */}
           <Group gap="xs">
-            <Badge
-              size="sm"
-              variant="dot"
-              color={shareLink.active ? 'green' : 'gray'}
-            >
+            <Badge size="sm" variant="dot" color={shareLink.active ? 'green' : 'gray'}>
               {shareLink.active ? 'Active' : 'Disabled'}
             </Badge>
-            <Badge
-              size="sm"
-              variant="dot"
-              color={shareLink.canEdit ? 'orange' : 'blue'}
-            >
+            <Badge size="sm" variant="dot" color={shareLink.canEdit ? 'orange' : 'blue'}>
               {shareLink.canEdit ? 'Read & Write' : 'Read only'}
             </Badge>
           </Group>

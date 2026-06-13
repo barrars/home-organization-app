@@ -4,6 +4,7 @@ import mongoose, { Schema, Document } from 'mongoose'
 export interface IHome extends Document {
   token: string
   name: string
+  deviceIds: string[]
 }
 
 const homeSchema = new Schema<IHome>(
@@ -19,6 +20,10 @@ const homeSchema = new Schema<IHome>(
       type: String,
       default: 'Home Organizer',
       maxlength: 50,
+    },
+    deviceIds: {
+      type: [String],
+      default: [],
     },
   },
   { timestamps: true },

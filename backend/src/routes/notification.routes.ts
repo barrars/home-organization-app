@@ -13,9 +13,25 @@ const notificationLimiter = rateLimit({
 })
 
 router.get('/', notificationLimiter, notificationController.list.bind(notificationController))
-router.get('/unread-count', notificationLimiter, notificationController.unreadCount.bind(notificationController))
-router.patch('/:id/read', notificationLimiter, notificationController.markRead.bind(notificationController))
-router.post('/mark-all-read', notificationLimiter, notificationController.markAllRead.bind(notificationController))
-router.delete('/:id', notificationLimiter, notificationController.remove.bind(notificationController))
+router.get(
+  '/unread-count',
+  notificationLimiter,
+  notificationController.unreadCount.bind(notificationController),
+)
+router.patch(
+  '/:id/read',
+  notificationLimiter,
+  notificationController.markRead.bind(notificationController),
+)
+router.post(
+  '/mark-all-read',
+  notificationLimiter,
+  notificationController.markAllRead.bind(notificationController),
+)
+router.delete(
+  '/:id',
+  notificationLimiter,
+  notificationController.remove.bind(notificationController),
+)
 
 export default router

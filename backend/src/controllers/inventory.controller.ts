@@ -74,7 +74,14 @@ class ItemController {
       ])
       const roomName = roomDoc?.name ?? ''
       const homeName = homeDoc?.name ?? ''
-      emitToHome(req.homeId, 'item:created', { id: saved._id, roomId: saved.roomId, homeId: req.homeId, itemName: saved.name, roomName, homeName })
+      emitToHome(req.homeId, 'item:created', {
+        id: saved._id,
+        roomId: saved.roomId,
+        homeId: req.homeId,
+        itemName: saved.name,
+        roomName,
+        homeName,
+      })
       notifyShareRecipients(
         [
           { targetType: 'item', targetId: saved._id },
@@ -123,7 +130,14 @@ class ItemController {
         ])
         const roomName = roomDoc?.name ?? ''
         const homeName = homeDoc?.name ?? ''
-        emitToHome(req.homeId, 'item:updated', { id: item._id, roomId: item.roomId, homeId: req.homeId, itemName: item.name, roomName, homeName })
+        emitToHome(req.homeId, 'item:updated', {
+          id: item._id,
+          roomId: item.roomId,
+          homeId: req.homeId,
+          itemName: item.name,
+          roomName,
+          homeName,
+        })
         notifyShareRecipients(
           [
             { targetType: 'item', targetId: item._id },
@@ -156,7 +170,14 @@ class ItemController {
         ])
         const roomName = roomDoc?.name ?? ''
         const homeName = homeDoc?.name ?? ''
-        emitToHome(req.homeId, 'item:deleted', { id: item._id, roomId: item.roomId, homeId: req.homeId, itemName: item.name, roomName, homeName })
+        emitToHome(req.homeId, 'item:deleted', {
+          id: item._id,
+          roomId: item.roomId,
+          homeId: req.homeId,
+          itemName: item.name,
+          roomName,
+          homeName,
+        })
         notifyShareRecipients(
           [
             { targetType: 'item', targetId: item._id },

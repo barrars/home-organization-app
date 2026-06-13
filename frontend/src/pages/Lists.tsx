@@ -47,7 +47,9 @@ const Lists: React.FC = () => {
     }
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const openCreate = () => {
     setEditTarget(null);
@@ -69,13 +71,26 @@ const Lists: React.FC = () => {
     setSaving(true);
     try {
       if (editTarget) {
-        const updated = await updateList(editTarget._id, { name: nameValue.trim(), description: descValue.trim() });
-        setLists((prev) => prev.map((l) => (l._id === updated._id ? { ...updated, itemCount: l.itemCount } : l)));
-        notifications.show({ title: 'Saved', message: `"${updated.name}" updated.`, color: 'green' });
+        const updated = await updateList(editTarget._id, {
+          name: nameValue.trim(),
+          description: descValue.trim(),
+        });
+        setLists((prev) =>
+          prev.map((l) => (l._id === updated._id ? { ...updated, itemCount: l.itemCount } : l)),
+        );
+        notifications.show({
+          title: 'Saved',
+          message: `"${updated.name}" updated.`,
+          color: 'green',
+        });
       } else {
         const created = await createList({ name: nameValue.trim(), description: descValue.trim() });
         setLists((prev) => [...prev, { ...created, itemCount: 0 }]);
-        notifications.show({ title: 'Created', message: `"${created.name}" is ready.`, color: 'green' });
+        notifications.show({
+          title: 'Created',
+          message: `"${created.name}" is ready.`,
+          color: 'green',
+        });
       }
       setModalOpen(false);
     } catch {
@@ -87,7 +102,12 @@ const Lists: React.FC = () => {
 
   const handleDelete = async (e: React.MouseEvent, list: ItemList) => {
     e.stopPropagation();
-    if (!window.confirm(`Delete "${list.name}"? This removes all list entries (items themselves are unaffected).`)) return;
+    if (
+      !window.confirm(
+        `Delete "${list.name}"? This removes all list entries (items themselves are unaffected).`,
+      )
+    )
+      return;
     try {
       await deleteList(list._id);
       setLists((prev) => prev.filter((l) => l._id !== list._id));
@@ -201,7 +221,9 @@ const Lists: React.FC = () => {
             onChange={(e) => setNameValue(e.currentTarget.value)}
             required
             data-autofocus
-            onKeyDown={(e) => { if (e.key === 'Enter') handleSave(); }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleSave();
+            }}
           />
           <Textarea
             label="Description"

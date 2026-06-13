@@ -1,6 +1,13 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { LoadingOverlay } from '@mantine/core';
-import { initAuth, updateHomeName, switchHome as switchHomeApi, rotateHomeToken } from '../services/api';
+import {
+  initAuth,
+  updateHomeName,
+  switchHome as switchHomeApi,
+  rotateHomeToken,
+  createHome as createHomeApi,
+  deleteHome as deleteHomeApi,
+} from '../services/api';
 import { getSocket } from '../services/socket';
 
 const ACTIVE_ID_KEY = 'home_organizer_active_id';
@@ -12,6 +19,8 @@ export interface StoredHome {
 }
 
 const LS_KEY = 'home_organizer_homes';
+
+export const MAX_HOMES = 3;
 
 export function getStoredHomes(): StoredHome[] {
   try {
@@ -47,6 +56,8 @@ interface AuthState {
   switchHome: (token: string) => Promise<void>;
   leaveHome: (token: string) => void;
   rotateToken: () => Promise<string>;
+  createHome: () => Promise<void>;
+  deleteHome: (homeId: string, homeToken: string) => Promise<void>;
   openRecoveryModal: () => void;
   recoveryModalOpen: boolean;
   closeRecoveryModal: () => void;
@@ -105,15 +116,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setHomeNameState(name);
       const activeId = localStorage.getItem(ACTIVE_ID_KEY) ?? '';
       setHomes((prev) => {
-        const updated = prev.map((h) =>
-          h.id === activeId ? { ...h, name } : h,
-        );
+        const updated = prev.map((h) => (h.id === activeId ? { ...h, name } : h));
         localStorage.setItem('home_organizer_homes', JSON.stringify(updated));
         return updated;
       });
     };
     socket.on('home:renamed', handler);
-    return () => { socket.off('home:renamed', handler); };
+    return () => {
+      socket.off('home:renamed', handler);
+    };
   }, [token]);
 
   const switchHome = async (targetToken: string) => {
@@ -145,6 +156,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return joinUrl;
   };
 
+  const createHome = async () => {
+    const result = await createHomeApi();
+    setHomes(upsertStoredHome(String(result.id), result.token, result.name));
+    localStorage.setItem(ACTIVE_ID_KEY, String(result.id));
+    window.location.reload();
+  };
+
+  const deleteHome = async (homeId: string, homeToken: string) => {
+    if (homeToken === token) return;
+    await deleteHomeApi(homeId, homeToken);
+    setHomes(removeStoredHome(homeToken));
+  };
+
   if (!ready) {
     return (
       <div style={{ height: '100vh', position: 'relative' }}>
@@ -164,6 +188,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         switchHome,
         leaveHome,
         rotateToken,
+        createHome,
+        deleteHome,
         openRecoveryModal: () => setRecoveryModalOpen(true),
         recoveryModalOpen,
         closeRecoveryModal: () => setRecoveryModalOpen(false),

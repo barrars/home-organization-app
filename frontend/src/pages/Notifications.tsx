@@ -34,22 +34,38 @@ function getLabel(notification: Notification): string {
   const inHome = homeName ? ` · ${homeName}` : '';
 
   switch (notification.event) {
-    case 'item:created':       return `${item} added${inRoom}${inHome}`;
-    case 'item:updated':       return `${item} updated${inRoom}${inHome}`;
-    case 'item:deleted':       return `${item} trashed${inRoom}${inHome}`;
-    case 'item:restored':      return `${item} restored${inRoom}${inHome}`;
-    case 'item:destroyed':     return `${item} permanently deleted`;
-    case 'room:created':       return `Room ${room} created${inHome}`;
-    case 'room:updated':       return `Room ${room} updated${inHome}`;
-    case 'room:deleted':       return `Room ${room} trashed${inHome}`;
-    case 'room:restored':      return `Room ${room} restored${inHome}`;
-    case 'room:destroyed':     return `Room ${room} permanently deleted`;
-    case 'share:item:created': return `${item} added to ${room}${inHome}`;
-    case 'share:item:updated': return `${item} updated in ${room}${inHome}`;
-    case 'share:item:deleted': return `${item} removed from ${room}${inHome}`;
-    case 'share:room:updated': return `Room ${room} updated${inHome}`;
-    case 'dumpster:wiped':     return 'The trash was emptied';
-    default:                   return notification.event;
+    case 'item:created':
+      return `${item} added${inRoom}${inHome}`;
+    case 'item:updated':
+      return `${item} updated${inRoom}${inHome}`;
+    case 'item:deleted':
+      return `${item} trashed${inRoom}${inHome}`;
+    case 'item:restored':
+      return `${item} restored${inRoom}${inHome}`;
+    case 'item:destroyed':
+      return `${item} permanently deleted`;
+    case 'room:created':
+      return `Room ${room} created${inHome}`;
+    case 'room:updated':
+      return `Room ${room} updated${inHome}`;
+    case 'room:deleted':
+      return `Room ${room} trashed${inHome}`;
+    case 'room:restored':
+      return `Room ${room} restored${inHome}`;
+    case 'room:destroyed':
+      return `Room ${room} permanently deleted`;
+    case 'share:item:created':
+      return `${item} added to ${room}${inHome}`;
+    case 'share:item:updated':
+      return `${item} updated in ${room}${inHome}`;
+    case 'share:item:deleted':
+      return `${item} removed from ${room}${inHome}`;
+    case 'share:room:updated':
+      return `Room ${room} updated${inHome}`;
+    case 'dumpster:wiped':
+      return 'The trash was emptied';
+    default:
+      return notification.event;
   }
 }
 
